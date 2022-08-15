@@ -1,3 +1,44 @@
+:root {
+	--major-width: 900px;/*95vw;*/
+	--major-height: 900px;/*65.19607845vw;*/
+	--canvas-dim: 900px;
+}
+
+.parent_div {
+	width: var(--major-width);
+	height: var(--major-height);
+	max-width: 900px; /*138.428571415vh;*/
+	max-height: 900px; /*95vh;*/
+	position: center;
+	margin: auto;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	/*border-style: solid;
+	border-color: #cacaca;
+	border-width: 2px;*/
+}
+
+.child_div1 {
+	width: var(--major-height);
+	height: var(--major-height);
+	max-width: 900px; /*95vh;*/
+	max-height: 900px; /*95vh;*/
+	/*float: left;*/
+	text-align: center;
+}
+
+.canvas_container {
+	width: 900px; /*var(--canvas-dim);*/
+	height: 900px; /*var(--canvas-dim);*/
+	max-width: 900px; /*94.321428542vh;*/
+	max-height: 900px; /*94.321428542vh;*/
+	/*border-style: solid;
+	border-color: #cacaca;
+	border-width: 2px;*/
+}
+
 body {
     background-color: indianred;
     text-align: center;
