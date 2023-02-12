@@ -1,7 +1,7 @@
 // Based on simple canvas network visualization by Mike Bostock
 // source: https://bl.ocks.org/mbostock/ad70335eeef6d167bc36fd3c04378048
 
-function vis(new_controls) {
+function vis(new_controls, data) {
 
   // Canvas //
   // ------ //
@@ -22,7 +22,6 @@ function vis(new_controls) {
   let height = canvas.height;
 
 
-
   // Retina canvas rendering
   var devicePixelRatio = window.devicePixelRatio || 1
   d3.select(canvas)
@@ -38,7 +37,7 @@ function vis(new_controls) {
 
   // Control variables
 
-
+  window.data = data;
 
   window.controls = {"zoom": 0.65,
        "node_charge": -80,
@@ -105,7 +104,6 @@ function vis(new_controls) {
 
   // Restart simulation
   function restart() {
-
     // Start simulation
     simulation
       .nodes(graph.nodes)
@@ -142,8 +140,8 @@ function vis(new_controls) {
   }
 
   function dragstarted() {
-    console.log("dragstarted")
-    if (!controls['freeze_nodes']) simulation.alphaTarget(0.3);
+    // console.log("dragstarted")
+    if (!controls['freeze_nodes']) simulation.alphaTarget(1);
     simulation.restart();
     d3.event.subject.fx = d3.event.subject.x;
     d3.event.subject.fy = d3.event.subject.y;
@@ -154,14 +152,14 @@ function vis(new_controls) {
     const x = (document.documentElement || document.body.parentNode || document.body).scrollLeft - init_x;
     const y = (document.documentElement || document.body.parentNode || document.body).scrollTop - init_y;
 
-    console.log("dragged")
+    // console.log("dragged")
     d3.event.subject.fx = zoomScaler.invert(event.clientX - (canvasOffsetX - x));
     d3.event.subject.fy = zoomScaler.invert(event.clientY - (canvasOffsetY - y));
     if (controls['freeze_nodes']) simulation.restart();
   }
 
   function dragended() {
-    console.log("dragended")
+    // console.log("dragended")
     if (!controls['freeze_nodes']) simulation.alphaTarget(0);
     d3.event.subject.fx = null;
     d3.event.subject.fy = null;
@@ -169,16 +167,60 @@ function vis(new_controls) {
 
   function drawLink(d) {
     var thisLinkWidth = valIfValid(d.weight, 1) ** (controls['link_width_variation']) * linkWidthNorm * controls['link_width'];
-    context.beginPath();
-    context.moveTo(zoomScaler(d.source.x), zoomScaler(d.source.y));
-    context.lineTo(zoomScaler(d.target.x), zoomScaler(d.target.y));
+    const edgeString = d.source.id + '_' + d.target.id
+    if (inEdges.has(edgeString)) {
+      context.strokeStyle = '#FF0000';
+      context.fillStyle = '#FF0000';
+    } else if (outEdges.has(edgeString)) {
+      context.strokeStyle = '#0000FF';
+      context.fillStyle = '#0000FF';
+    } else {
+      context.strokeStyle = controls['link_color']
+      context.fillStyle = controls['link_color']
+      if (inNodes.size !== 0 || outNodes.size !== 0) return // Remove this later
+    }
+    //context.beginPath();
+    //context.moveTo(zoomScaler(d.source.x), zoomScaler(d.source.y));
+    //context.lineTo(zoomScaler(d.target.x), zoomScaler(d.target.y));
     context.lineWidth = thisLinkWidth * controls['zoom'];
+    //context.stroke();
+    let p1 = {'x': zoomScaler(d.source.x), 'y': zoomScaler(d.source.y)}
+    let p2 = {'x': zoomScaler(d.target.x), 'y': zoomScaler(d.target.y)}
+    var thisNodeSize = valIfValid(d.target.size, 1) ** (controls['node_size_variation']) * nodeSizeNorm * controls['node_size'];
+    arrow(p1, p2, 3, thisNodeSize * (controls['zoom'] + (controls['zoom'] - 1)))// d.target.radius)
+  }
+
+  function arrow(p1, p2, size, r) {
+    var angle = Math.atan2((p2.y - p1.y) , (p2.x - p1.x));
+    var hyp = Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y));
+
+    context.save();
+    context.translate(p1.x, p1.y);
+    context.rotate(angle);
+
+    // line
+    context.beginPath();
+    context.moveTo(0, 0);
+    context.lineTo(hyp - (2*size+r), 0);
     context.stroke();
+
+    // triangle
+    context.beginPath();
+    context.lineTo(hyp - (2*size+r), size);
+    context.lineTo(hyp - r, 0);
+    context.lineTo(hyp - (2*size+r), -size);
+    context.fill();
+
+    context.restore();
   }
 
   function drawNode(d) {
     // Node
     var thisNodeSize = valIfValid(d.size, 1) ** (controls['node_size_variation']) * nodeSizeNorm * controls['node_size'];
+    if (d.id === centralNode) context.strokeStyle = '#FF0000'
+    else context.strokeStyle = controls['node_stroke_color']
+
+    if ((inNodes.size !== 0 || outNodes.size !== 0) && !inNodes.has(d.id) && !outNodes.has(d.id)) return
     context.beginPath();
     context.moveTo(zoomScaler(d.x) + thisNodeSize * (controls['zoom'] + (controls['zoom'] - 1)), zoomScaler(d.y));
     context.arc(zoomScaler(d.x), zoomScaler(d.y), thisNodeSize * (controls['zoom'] + (controls['zoom'] - 1)), 0, 2 * Math.PI);
@@ -188,14 +230,20 @@ function vis(new_controls) {
   }
 
   function drawText(d) {
-    if (controls['display_node_labels'] || d.id == hoveredNode || selectedNodes.includes(d.id)) {
+    if (controls['display_node_labels'] || d.id === hoveredNode || selectedNodes.includes(d.id)) {
       var thisNodeSize = valIfValid(d.size, 1) ** (controls['node_size_variation']) * nodeSizeNorm * controls['node_size'];
+      //var fontSize = clip(thisNodeSize * controls['zoom'] * 2, 10, 20)
       context.font = clip(thisNodeSize * controls['zoom'] * 2, 10, 20) + "px Helvetica";
+      // context.textAlign = 'center';
       context.fillStyle = "white"; //controls['node_label_color'] //
       context.strokeStyle = "black";
       context.lineWidth = Math.max(3, Math.min(d.size, 2));
-      context.strokeText(d.id, zoomScaler(d.x), zoomScaler(d.y));
-      context.fillText(d.id, zoomScaler(d.x), zoomScaler(d.y));
+      //context.strokeText(d.id + ': ' + data[d.id]['danish title'], 0, 30);
+      //context.fillText(d.id + ': ' + data[d.id]['danish title'], 0, 30);
+      context.strokeText(d.id + ': ' + data[d.id]['danish title'], zoomScaler(d.x), zoomScaler(d.y));
+      context.fillText(d.id + ': ' + data[d.id]['danish title'], zoomScaler(d.x), zoomScaler(d.y));
+      //context.strokeText(data[d.id]['danish title'], zoomScaler(d.x), zoomScaler(d.y+fontSize*1.5));
+      //context.fillText(data[d.id]['danish title'], zoomScaler(d.x), zoomScaler(d.y+fontSize*1.5));
     }
   }
 
@@ -216,6 +264,21 @@ function vis(new_controls) {
   var hoveredNode;
   var selectedNodes = [];
   var xy;
+  var centralNode;
+  var inEdges = new Set();
+  var outEdges = new Set();
+  var inNodes = new Set();
+  var outNodes = new Set();
+  var mainGraph;
+
+  function resetGraph() {
+    centralNode = 'undefined';
+    inEdges = new Set();
+    outEdges = new Set();
+    inNodes = new Set();
+    outNodes = new Set();
+  }
+
   d3.select(canvas).on("mousemove", function() {
     if (!controls['display_node_labels']) {
       xy = d3.mouse(this)
@@ -232,11 +295,90 @@ function vis(new_controls) {
       if (selectedNodes.includes(hoveredNode)) {
         selectedNodes.splice(selectedNodes.indexOf(hoveredNode), 1)
       } else {
-        selectedNodes.push(hoveredNode)
+        selectedNodes.push(hoveredNode);
       }
       simulation.restart();
     }
   }, true)
+
+  canvas.addEventListener('dblclick', function() {
+    if (typeof (hoveredNode) != 'undefined') {
+      if (!selectedNodes.includes(hoveredNode)) selectedNodes.push(hoveredNode)
+      centralNode = hoveredNode;
+
+      // Remove labels no longer in graph
+      selectedNodes = selectedNodes.filter(item => (inNodes.has(item) || outNodes.has(item)))
+
+      // Create sub-graph
+      findSubGraph();
+      createSubGraph();
+
+      simulation.restart();
+    } else {
+      centralNode = 'undefined';
+    }
+  }, true)
+
+  document.body.addEventListener('keydown', function(e) {
+    if (e.key === "Escape") {
+      resetGraph()
+      restartIfValidJSON(mainGraph)
+      inputtedCharge(controls['node_charge'])
+      inputtedGravity(controls['node_gravity'])
+    }
+  });
+
+  function findSubGraph() {
+    inEdges = new Set();
+    inNodes = new Set();
+    let Qin = [hoveredNode];
+    inNodes.add(hoveredNode);
+    while (Qin.length > 0) {
+      let currentNode = Qin.shift()
+      data[currentNode].ins.forEach(function (inNode, index) {
+        if (!inNodes.has(inNode)) {
+          inNodes.add(inNode);
+          Qin.push(inNode)
+        }
+        inEdges.add(inNode + '_' + currentNode);
+      })
+    }
+    outEdges = new Set();
+    outNodes = new Set();
+    let Qout = [hoveredNode];
+    while (Qout.length > 0) {
+      let currentNode = Qout.shift()
+      if (data[currentNode].outs.length > 0) {
+        data[currentNode].outs.forEach(function (outNode, index) {
+          if (!outNodes.has(outNode)) {
+            outNodes.add(outNode);
+            Qout.push(outNode)
+          }
+          outEdges.add(currentNode + '_' + outNode);
+        })
+      }
+    }
+  }
+
+  function createSubGraph() {
+    let _graph;
+    if (controls['file_path'].endsWith(".json")) {
+      d3.json(controls['file_path'], function (error, _graph) {
+        if (error) {
+          Swal.fire({text: "File not found", type: "error"})
+          return false
+        }
+        _graph.links = _graph.links.filter(item => {
+          const edgeString = item.source + '_' + item.target;
+          return (outEdges.has(edgeString) || inEdges.has(edgeString))
+        });
+        _graph.nodes = _graph.nodes.filter(item => (inNodes.has(item.id) || outNodes.has(item.id)))
+        restartIfValidJSON(_graph)
+        inputtedCharge(0.5*_graph.nodes.length - 500)
+        inputtedGravity(Math.min(1.3, 0.005*_graph.nodes.length))
+      })
+    }
+  }
 
   // Parameter controls //
   // ------------------ //
@@ -296,11 +438,12 @@ function vis(new_controls) {
 
   function handleURL() {
     if (controls['file_path'].endsWith(".json")) {
-      d3.json(controls['file_path'], function(error, _graph) {
+      d3.json(controls['file_path'], function (error, _graph) {
         if (error) {
-          Swal.fire({ text: "File not found", type: "error" })
+          Swal.fire({text: "File not found", type: "error"})
           return false
         }
+        mainGraph = _graph;
         restartIfValidJSON(_graph);
       })
     }
@@ -308,7 +451,6 @@ function vis(new_controls) {
 
 
   function restartIfValidJSON(masterGraph) {
-
     // Check for 'nodes' and 'links' lists
     if (!masterGraph.nodes || masterGraph.nodes.length == 0) {
       Swal.fire({ text: "Dataset does not have a key 'nodes'", type: "error" })
@@ -410,6 +552,20 @@ function vis(new_controls) {
     restart();
   }
 
+  function inputtedCharge(v) {
+    console.log('Updated Charge to', v)
+    simulation.force("charge").strength(+v);
+    simulation.alpha(1).restart();
+    if (controls['freeze_nodes']) controls['freeze_nodes'] = false;
+  }
+
+  function inputtedGravity(v) {
+    console.log('Updated Gravity to', v)
+    simulation.force("x").strength(+v);
+    simulation.force("y").strength(+v);
+    simulation.alpha(1).restart();
+    if (controls['freeze_nodes']) controls['freeze_nodes'] = false;
+  }
 
 
   // Various utilities
@@ -424,7 +580,9 @@ function vis(new_controls) {
         nodePositions = false; break;
       }
     }
+
     if (nodePositions) {
+
       // Rescale node positions to fit nicely inside of canvas depending on xlim or rescale properties.
       if (masterGraph.rescale || ((!masterGraph.hasOwnProperty('rescale') && !masterGraph.hasOwnProperty('xlim')))) {
         let xVals = []; let yVals = [];

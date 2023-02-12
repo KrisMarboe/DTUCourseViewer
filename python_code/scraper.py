@@ -23,7 +23,7 @@ def parse_attribute(name, raw_info):
         info = ','.join([link.text for link in raw_info.find_all('a')])
         #if not info:
         #    print(colored('PROBLEM WITH RECOMMENDED COURSES', 'red'))
-        info = info + ', ' + ','.join(raw_info.findAll(text=True, recursive=False))
+        info = info + ', ' + ','.join(raw_info.findAll(string=True, recursive=False))
     elif name == 'Responsible' or name == 'Kursusansvarlig':
         info = raw_info.find('a').text
     else:
@@ -62,6 +62,7 @@ for course_link in soup.find('table', {'class': 'table'}).find_all('a'):
 
     course_data['Link'] = baseurl + course_link.get('href')
     driver.get(baseurl + course_link.get('href'))
+
     time.sleep(0.5)
     course_soup = BeautifulSoup(driver.page_source, 'html.parser')
 
