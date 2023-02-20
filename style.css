@@ -1,42 +1,86 @@
 :root {
-	--major-width: 900px;/*95vw;*/
-	--major-height: 900px;/*65.19607845vw;*/
-	--canvas-dim: 900px;
+	--major-width: 95vw;
+	--major-height: 65.19607845vw;
+	--canvas-dim: 64.730392155vw;
+	--sidebar-width: 27.941176465vw;
+	--department-width: 16vw;
 }
 
 .parent_div {
 	width: var(--major-width);
 	height: var(--major-height);
-	max-width: 900px; /*138.428571415vh;*/
-	max-height: 900px; /*95vh;*/
-	position: center;
+	/*max-width: 138.428571415vh;*/
+	max-height: 95vh;
+	position: absolute;
 	margin: auto;
 	top: 0;
 	right: 0;
 	bottom: 0;
 	left: 0;
-	/*border-style: solid;
-	border-color: #cacaca;
-	border-width: 2px;*/
+	border: black solid 2px;
+	display: flex;
+    justify-content: space-between;
+}
+
+.child_div0 {
+	width: var(--department-width);
+	height: var(--major-height);
+	max-width: 16vw;
+	max-height: 94vh;
+	display: inline-block;
+	border: black solid 2px;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	-ms-overflow-style: none;
+	/*overflow-y: scroll;*/
+	/*float: none;*/
+}
+.child_div0::-webkit-scrollbar {
+  display: none;
+}
+
+#department_container {
+	float: left;
+}
+
+.department_button {
+	color: white;
+	border-radius: 6px;
+	padding: 12px;
 }
 
 .child_div1 {
 	width: var(--major-height);
 	height: var(--major-height);
-	max-width: 900px; /*95vh;*/
-	max-height: 900px; /*95vh;*/
-	/*float: left;*/
-	text-align: center;
+	max-width: 95vh;
+	max-height: 95vh;
+	display: inline-block;
+	border: black solid 2px;
+	/*float: none;*/
 }
 
 .canvas_container {
-	width: 900px; /*var(--canvas-dim);*/
-	height: 900px; /*var(--canvas-dim);*/
-	max-width: 900px; /*94.321428542vh;*/
-	max-height: 900px; /*94.321428542vh;*/
-	/*border-style: solid;
-	border-color: #cacaca;
-	border-width: 2px;*/
+	width: var(--canvas-dim);
+	height: var(--canvas-dim);
+	max-width: 94.321428542vh;
+	max-height: 94.321428542vh;
+}
+
+.child_div2 {
+	width: var(--sidebar-width);
+	height: var(--major-height);
+	max-width: 40.714285702vh;
+	max-height: 95vh;
+	display: inline-block;
+	border: black solid 2px;
+	/*float: right;
+	overflow-y: scroll;*/
+}
+
+.controls_container {
+	width: var(--sidebar-width);
+	max-width: 40.714285702vh;
+	position: relative;
 }
 
 body {

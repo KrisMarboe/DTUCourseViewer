@@ -31,7 +31,6 @@ function vis(new_controls, data) {
     .style("height", height + "px").node()
   context.scale(devicePixelRatio, devicePixelRatio)
 
-
   // Simulation //
   // ---------- //
 
@@ -51,6 +50,7 @@ function vis(new_controls, data) {
        "node_stroke_color": "#555555",
        "node_label_color": "#000000",
        "display_node_labels": false,
+       "label_size": 3,
        "scale_node_size_by_strength": true,
        "node_size": 22,
        "node_stroke_width": 0.95,
@@ -99,7 +99,7 @@ function vis(new_controls, data) {
     context.globalCompositeOperation = "source-over";
     graph.nodes.forEach(drawNode);
     graph.nodes.forEach(drawText);
-
+    drawDepartment();
   }
 
   // Restart simulation
@@ -127,16 +127,23 @@ function vis(new_controls, data) {
     }
   }
 
+  function simulationSoftRestart(){
+    if (!controls['freeze_nodes']){
+      simulation.restart();
+    } else {
+      ticked();
+    }
+  }
 
   var init_x = (document.documentElement || document.body.parentNode || document.body).scrollLeft;
-
   var init_y = (document.documentElement || document.body.parentNode || document.body).scrollTop;
+  let initRender = true;
 
   // Network functions
   // -----------------
 
   function dragsubject() {
-    return simulation.find(zoomScaler.invert(d3.event.x), zoomScaler.invert(d3.event.y), 20);
+    return simulation.find(zoomScalerX.invert(d3.event.x), zoomScalerY.invert(d3.event.y), 20);
   }
 
   function dragstarted() {
@@ -153,8 +160,8 @@ function vis(new_controls, data) {
     const y = (document.documentElement || document.body.parentNode || document.body).scrollTop - init_y;
 
     // console.log("dragged")
-    d3.event.subject.fx = zoomScaler.invert(event.clientX - (canvasOffsetX - x));
-    d3.event.subject.fy = zoomScaler.invert(event.clientY - (canvasOffsetY - y));
+    d3.event.subject.fx = zoomScalerX.invert(event.clientX - (canvasOffsetX - x));
+    d3.event.subject.fy = zoomScalerY.invert(event.clientY - (canvasOffsetY - y));
     if (controls['freeze_nodes']) simulation.restart();
   }
 
@@ -184,10 +191,10 @@ function vis(new_controls, data) {
     //context.lineTo(zoomScaler(d.target.x), zoomScaler(d.target.y));
     context.lineWidth = thisLinkWidth * controls['zoom'];
     //context.stroke();
-    let p1 = {'x': zoomScaler(d.source.x), 'y': zoomScaler(d.source.y)}
-    let p2 = {'x': zoomScaler(d.target.x), 'y': zoomScaler(d.target.y)}
+    let p1 = {'x': zoomScalerX(d.source.x), 'y': zoomScalerY(d.source.y)}
+    let p2 = {'x': zoomScalerX(d.target.x), 'y': zoomScalerY(d.target.y)}
     var thisNodeSize = valIfValid(d.target.size, 1) ** (controls['node_size_variation']) * nodeSizeNorm * controls['node_size'];
-    arrow(p1, p2, 3, thisNodeSize * (controls['zoom'] + (controls['zoom'] - 1)))// d.target.radius)
+    arrow(p1, p2, thisLinkWidth*2*controls['zoom'], thisNodeSize * (controls['zoom'] + (controls['zoom'] - 1)))// d.target.radius)
   }
 
   function arrow(p1, p2, size, r) {
@@ -217,13 +224,13 @@ function vis(new_controls, data) {
   function drawNode(d) {
     // Node
     var thisNodeSize = valIfValid(d.size, 1) ** (controls['node_size_variation']) * nodeSizeNorm * controls['node_size'];
-    if (d.id === centralNode) context.strokeStyle = '#FF0000'
+    if (d.id === centralNode[centralNode.length - 1]) context.strokeStyle = '#FF0000'
     else context.strokeStyle = controls['node_stroke_color']
 
     if ((inNodes.size !== 0 || outNodes.size !== 0) && !inNodes.has(d.id) && !outNodes.has(d.id)) return
     context.beginPath();
-    context.moveTo(zoomScaler(d.x) + thisNodeSize * (controls['zoom'] + (controls['zoom'] - 1)), zoomScaler(d.y));
-    context.arc(zoomScaler(d.x), zoomScaler(d.y), thisNodeSize * (controls['zoom'] + (controls['zoom'] - 1)), 0, 2 * Math.PI);
+    context.moveTo(zoomScalerX(d.x) + thisNodeSize * (controls['zoom'] + (controls['zoom'] - 1)), zoomScalerY(d.y));
+    context.arc(zoomScalerX(d.x), zoomScalerY(d.y), thisNodeSize * (controls['zoom'] + (controls['zoom'] - 1)), 0, 2 * Math.PI);
     context.fillStyle = computeNodeColor(d);
     context.fill();
     context.stroke();
@@ -231,22 +238,36 @@ function vis(new_controls, data) {
 
   function drawText(d) {
     if (controls['display_node_labels'] || d.id === hoveredNode || selectedNodes.includes(d.id)) {
-      var thisNodeSize = valIfValid(d.size, 1) ** (controls['node_size_variation']) * nodeSizeNorm * controls['node_size'];
-      //var fontSize = clip(thisNodeSize * controls['zoom'] * 2, 10, 20)
-      context.font = clip(thisNodeSize * controls['zoom'] * 2, 10, 20) + "px Helvetica";
-      // context.textAlign = 'center';
-      context.fillStyle = "white"; //controls['node_label_color'] //
+      context.font = 5*controls['label_size'] + "px Helvetica";
+      context.fillStyle = "white";
       context.strokeStyle = "black";
-      context.lineWidth = Math.max(3, Math.min(d.size, 2));
-      //context.strokeText(d.id + ': ' + data[d.id]['danish title'], 0, 30);
-      //context.fillText(d.id + ': ' + data[d.id]['danish title'], 0, 30);
-      context.strokeText(d.id + ': ' + data[d.id]['danish title'], zoomScaler(d.x), zoomScaler(d.y));
-      context.fillText(d.id + ': ' + data[d.id]['danish title'], zoomScaler(d.x), zoomScaler(d.y));
-      //context.strokeText(data[d.id]['danish title'], zoomScaler(d.x), zoomScaler(d.y+fontSize*1.5));
-      //context.fillText(data[d.id]['danish title'], zoomScaler(d.x), zoomScaler(d.y+fontSize*1.5));
+      context.lineWidth = controls['label_size'];
+      context.strokeText(d.id + ': ' + data[d.id][`${settings['language']} title`], zoomScalerX(d.x), zoomScalerY(d.y));
+      context.fillText(d.id + ': ' + data[d.id][`${settings['language']} title`], zoomScalerX(d.x), zoomScalerY(d.y));
     }
   }
 
+  function drawDepartment() {
+    if (hoveredNode === undefined) return;
+    context.font = "16px Helvetica"
+    context.fillStyle = "white";
+    context.strokeStyle = "black";
+    context.lineWidth = 3;
+    context.textAlign = "right";
+    const txt = data[hoveredNode]['department']
+    const txtWidth = context.measureText(txt).width
+    context.strokeText(txt, canvas.offsetWidth-20, 20);
+    context.fillText(txt, canvas.offsetWidth-20, 20);
+    context.lineWidth = controls['node_stroke_width'] < 1e-3 ? 1e-9 : controls['node_stroke_width'];
+    context.beginPath();
+    context.moveTo(canvas.offsetWidth-40-txtWidth + 8, 15);
+    context.arc(canvas.offsetWidth-40-txtWidth, 15, 8, 0, 2 * Math.PI);
+    context.fillStyle = hoveredNodeColor;
+    context.fill();
+    context.stroke();
+    context.lineWidth = controls['node_stroke_width'] < 1e-3 ? 1e-9 : controls['node_stroke_width'] * controls['zoom'];
+    context.textAlign = "left";
+  }
 
   // Key events //
   // ---------- //
@@ -261,36 +282,52 @@ function vis(new_controls, data) {
     shiftDown = false;
   }
 
-  var hoveredNode;
-  var selectedNodes = [];
-  var xy;
-  var centralNode;
-  var inEdges = new Set();
-  var outEdges = new Set();
-  var inNodes = new Set();
-  var outNodes = new Set();
-  var mainGraph;
+  let hoveredNode;
+  let hoveredNodeColor;
+  let selectedNodes = [];
+  let xy;
+  let centralNode = [undefined];
+  let inEdges = new Set();
+  let outEdges = new Set();
+  let inNodes = new Set();
+  let outNodes = new Set();
+  let mainGraph;
 
   function resetGraph() {
-    centralNode = 'undefined';
+    centralNode = [undefined];
     inEdges = new Set();
     outEdges = new Set();
     inNodes = new Set();
     outNodes = new Set();
+    restartIfValidJSON(mainGraph)
+    //inputtedCharge(controls['node_charge'])
+    //inputtedGravity(controls['node_gravity'])
+    gui.revert()
   }
 
   d3.select(canvas).on("mousemove", function() {
-    if (!controls['display_node_labels']) {
+    if (isDown) {
       xy = d3.mouse(this)
-      hoveredNode = simulation.find(zoomScaler.invert(xy[0]), zoomScaler.invert(xy[1]), 20)
+      handleMouseMove(xy);
+      simulation.restart();
+    } else {
+      xy = d3.mouse(this)
+      hoveredNode = simulation.find(zoomScalerX.invert(xy[0]), zoomScalerY.invert(xy[1]), 20)
       if (typeof (hoveredNode) != 'undefined') {
+        hoveredNodeColor = computeNodeColor(hoveredNode)
         hoveredNode = hoveredNode.id;
       }
       simulation.restart();
     }
   })
 
-  canvas.addEventListener("mousedown", function() {
+  d3.select(canvas).on("mousedown", function() {
+    if (typeof (hoveredNode) == 'undefined') {
+      handleMouseDown(d3.mouse(this));
+    }
+  }, true)
+
+  d3.select(canvas).on('click', function() {
     if (typeof (hoveredNode) != 'undefined') {
       if (selectedNodes.includes(hoveredNode)) {
         selectedNodes.splice(selectedNodes.indexOf(hoveredNode), 1)
@@ -301,38 +338,119 @@ function vis(new_controls, data) {
     }
   }, true)
 
-  canvas.addEventListener('dblclick', function() {
+  d3.select(canvas).on('dblclick', function() {
     if (typeof (hoveredNode) != 'undefined') {
-      if (!selectedNodes.includes(hoveredNode)) selectedNodes.push(hoveredNode)
-      centralNode = hoveredNode;
-
-      // Remove labels no longer in graph
-      selectedNodes = selectedNodes.filter(item => (inNodes.has(item) || outNodes.has(item)))
-
-      // Create sub-graph
-      findSubGraph();
-      createSubGraph();
-
-      simulation.restart();
-    } else {
-      centralNode = 'undefined';
+      createSubGraph(hoveredNode)
     }
   }, true)
 
+  d3.select(canvas).on('wheel', function() {
+    let e = d3.event
+    e.preventDefault();
+    const delta = Math.sign(e.deltaY);
+    window.controls['zoom'] = Math.min(5, Math.max(0.6, window.controls['zoom'] - delta*0.05));
+    calculate_zoomScalers(netPanningX, netPanningY)
+    if (!controls['display_node_labels']) {
+      xy = d3.mouse(this);
+      hoveredNode = simulation.find(zoomScalerX.invert(xy[0]), zoomScalerY.invert(xy[1]), 20)
+      if (typeof (hoveredNode) != 'undefined') {
+        hoveredNodeColor = computeNodeColor(hoveredNode)
+        hoveredNode = hoveredNode.id;
+      }
+    }
+    simulation.restart();
+  });
+
+  // Events for panning in canvas
+  let isDown = false;
+  let startPanX, startPanY;
+  // the accumulated horizontal(X) & vertical(Y) panning the user has done in total
+  let netPanningX = 0;
+  let netPanningY = 0;
+
+  canvas.addEventListener("mouseup", function() {
+    // clear the isDragging flag
+    isDown = false;
+  })
+
+  canvas.addEventListener("mouseout", function() {
+    // clear the isDragging flag
+    isDown = false;
+    hoveredNode = undefined
+  })
+
+  function handleMouseDown(mousePos){
+    // calc the starting mouse X,Y for the drag
+    startPanX=mousePos[0]
+    startPanY=mousePos[1]
+
+    // set the isDragging flag
+    isDown=true;
+  }
+
+  function handleMouseMove(mousePos){
+
+    // only do this code if the mouse is being dragged
+    if(!isDown){return;}
+
+    // dx & dy are the distance the mouse has moved since
+    // the last mousemove event
+    let dx=mousePos[0]-startPanX;
+    let dy=mousePos[1]-startPanY;
+
+    // reset the vars for next mousemove
+    startPanX=mousePos[0];
+    startPanY=mousePos[1];
+
+    // accumulate the net panning done
+    netPanningX+=dx;
+    netPanningY+=dy;
+    calculate_zoomScalers(netPanningX, netPanningY)
+  }
+
+
   document.body.addEventListener('keydown', function(e) {
-    if (e.key === "Escape") {
-      resetGraph()
-      restartIfValidJSON(mainGraph)
-      inputtedCharge(controls['node_charge'])
-      inputtedGravity(controls['node_gravity'])
+    switch (e.key) {
+      case "Escape":
+        resetGraph()
+        break
+      case "Backspace":
+        if (centralNode.length > 2) {
+          centralNode.pop()
+          createSubGraph()
+        } else if (centralNode.length === 2) {
+          resetGraph()
+        }
     }
   });
+
+  function createSubGraph(id=undefined) {
+    if (id !== undefined) {
+      centralNode.push(id);
+    }
+
+    if (!selectedNodes.includes(centralNode[centralNode.length - 1])) selectedNodes.push(centralNode[centralNode.length - 1])
+
+    // Remove labels no longer in graph
+    selectedNodes = selectedNodes.filter(item => (inNodes.has(item) || outNodes.has(item)))
+
+    // Create sub-graph
+    findSubGraph();
+    buildSubGraph();
+    calculateGraphControls();
+
+    netPanningX = 0;
+    netPanningY = 0;
+    calculate_zoomScalers(netPanningX, netPanningY)
+    simulation.restart();
+  }
 
   function findSubGraph() {
     inEdges = new Set();
     inNodes = new Set();
-    let Qin = [hoveredNode];
-    inNodes.add(hoveredNode);
+    let Qin = [centralNode[centralNode.length - 1]];
+    inNodes.add(centralNode[centralNode.length - 1]);
+    console.log(centralNode)
     while (Qin.length > 0) {
       let currentNode = Qin.shift()
       data[currentNode].ins.forEach(function (inNode, index) {
@@ -345,7 +463,7 @@ function vis(new_controls, data) {
     }
     outEdges = new Set();
     outNodes = new Set();
-    let Qout = [hoveredNode];
+    let Qout = [centralNode[centralNode.length - 1]];
     while (Qout.length > 0) {
       let currentNode = Qout.shift()
       if (data[currentNode].outs.length > 0) {
@@ -360,8 +478,7 @@ function vis(new_controls, data) {
     }
   }
 
-  function createSubGraph() {
-    let _graph;
+  function buildSubGraph() {
     if (controls['file_path'].endsWith(".json")) {
       d3.json(controls['file_path'], function (error, _graph) {
         if (error) {
@@ -374,10 +491,18 @@ function vis(new_controls, data) {
         });
         _graph.nodes = _graph.nodes.filter(item => (inNodes.has(item.id) || outNodes.has(item.id)))
         restartIfValidJSON(_graph)
-        inputtedCharge(0.5*_graph.nodes.length - 500)
-        inputtedGravity(Math.min(1.3, 0.005*_graph.nodes.length))
+        // inputtedCharge(0.5*_graph.nodes.length - 500)
+        // inputtedGravity(Math.min(1.3, 0.005*_graph.nodes.length))
       })
     }
+  }
+
+  function calculateGraphControls() {
+    controls['node_charge'] = -90;
+    controls['node_gravity'] = 0.1;
+    controls['link_distance'] = 30;
+    controls['zoom'] = Math.max(0.8 , 3 - (inNodes.size + outNodes.size) * 0.04);
+    controls['node_size'] = Math.min(40, 6 + (inNodes.size + outNodes.size) * 0.04)
   }
 
   // Parameter controls //
@@ -408,12 +533,82 @@ function vis(new_controls, data) {
     }
   });
 
+  // Titles
+  var title1_0 = "Search: Search after course by course number or title"
+  var title1_1 = "Zoom: Zoom in or out"
+  var title1_2 = "Language: Either danish or english"
+  var title1_3 = "Singleton nodes: Whether or not to show links that have zero degree"
+  var title2_1 = "Charge: Each node has negative charge and thus repel one another (like electrons). The more negative this charge is, the greater the repulsion"
+  var title2_2 = "Gravity: Push the nodes more or less towards the center of the canvas"
+  var title2_3 = "Link distance: The optimal link distance that the force layout algorithm will try to achieve for each link"
+  var title2_5 = "Collision: Make it harder for nodes to overlap"
+  var title2_6 = "Wiggle: Increase the force layout algorithm temperature to make the nodes wiggle. Useful for big networks that need some time for the nodes to settle in the right positions"
+  var title2_7 = "Freeze: Set force layout algorithm temperature to zero, causing the nodes to freeze in their position."
+  var title3_3 = "Label size: The size of the course names"
+  var title3_4 = "Display labels: Whether to show labels or not"
+  var title3_5 = "Size by strength: Rescale the size of each node relative to their strength (weighted degree)"
+  var title3_6 = "Size: Change the size of all nodes"
+  var title3_7 = "Stroke width: Change the width of the ring around nodes"
+  var title3_8 = "Size variation: Tweak the node size scaling function. Increase to make big nodes bigger and small nodes smaller. Useful for highlighting densely connected nodes."
+  var title4_2 = "Width: Change the width of all links"
+  var title4_3 = "Alpha: How transparent links should be. Useful in large dense networks"
+
+  // settings
+  let settings = {
+    "language": "danish",
+    "course_number": ""
+  }
+
+  // Control panel
+  var gui = new dat.GUI({ autoPlace: false });
+  var customContainer = document.getElementsByClassName('controls_container')[0];
+  gui.width = customContainer.offsetWidth;
+  gui.closed = false;
+  customContainer.appendChild(gui.domElement);
+  gui.remember(controls);
+
+
+  // Display
+  var f1 = gui.addFolder('Display'); f1.open();
+  f1.add(settings, 'course_number', ).name('Search').onFinishChange(function(v) { inputtedCourse(v) }).title(title1_0).listen();
+  f1.add(controls, 'zoom', 0.6, 5).name('Zoom').onChange(function(v) { inputtedZoom(v) }).title(title1_1).listen();
+  f1.add(settings, 'language', ['danish', 'english']).name('Language').onChange(function(v) { inputtedLanguage(v) }).title(title1_2);
+  f1.add(controls, 'display_singleton_nodes', true).name('Singleton nodes').onChange(function(v) { inputtedShowSingletonNodes(v) }).title(title1_3);
+
+  // Physics
+  var f2 = gui.addFolder('Physics'); f2.open();
+  f2.add(controls, 'node_charge', -100, 0).name('Charge').onChange(function(v) { inputtedCharge(v) }).title(title2_1).listen();
+  f2.add(controls, 'node_gravity', 0, 1).name('Gravity').onChange(function(v) { inputtedGravity(v) }).title(title2_2).listen();
+  f2.add(controls, 'link_distance', 0.1, 50).name('Link distance').onChange(function(v) { inputtedDistance(v) }).title(title2_3).listen();
+  f2.add(controls, 'node_collision', false).name('Collision').onChange(function(v) { inputtedCollision(v) }).title(title2_5);
+  f2.add(controls, 'wiggle_nodes', false).name('Wiggle').onChange(function(v) { inputtedReheat(v) }).listen().title(title2_6);
+  f2.add(controls, 'freeze_nodes', false).name('Freeze').onChange(function(v) { inputtedFreeze(v) }).listen().title(title2_7);
+
+  // Nodes
+  var f3 = gui.addFolder('Nodes'); f3.open();
+  f3.add(controls, 'node_size', 0, 50).name('Size').onChange(function(v) { inputtedNodeSize(v) }).title(title3_6).listen();
+  f3.add(controls, 'node_stroke_width', 0, 10).name('Stroke width').onChange(function(v) { inputtedNodeStrokeSize(v) }).title(title3_7);
+  f3.add(controls, 'node_size_variation', 0., 3.).name('Size variation').onChange(function(v) { inputtedNodeSizeExponent(v) }).title(title3_8).listen();
+  //f3.add(controls, 'label_size', 0.5, 5).name('Label size').onChange(function(v) { inputtedLabelSize(v) }).title(title3_3);
+  f3.add(controls, 'display_node_labels', false).name('Display labels').onChange(function(v) { inputtedShowLabels(v) }).title(title3_4);
+  f3.add(controls, 'scale_node_size_by_strength', false).name('Size by strength').onChange(function(v) { inputtedNodeSizeByStrength(v) }).title(title3_5);
+
+  // Links
+  var f4 = gui.addFolder('Links'); f4.open();
+  f4.add(controls, 'link_width', 0.01, 30).name('Width').onChange(function(v) { inputtedLinkWidth(v) }).title(title4_2);
+  f4.add(controls, 'link_alpha', 0, 1).name('Alpha').onChange(function(v) { inputtedLinkAlpha(v) }).title(title4_3);
+
   // Utility functions //
   // ----------------- //
-
   // The zoomScaler converts a simulation coordinate (what we don't see) to a
   // canvas coordinate (what we do see), and zoomScaler.invert does the opposite.
-  zoomScaler = d3.scaleLinear().domain([0, width]).range([width * (1 - controls['zoom']), controls['zoom'] * width])
+  function calculate_zoomScalers(offsetX=0, offsetY=0) {
+    zoomScalerX = d3.scaleLinear().domain([0, width]).range([offsetX + width * (1 - controls['zoom']), offsetX +  controls['zoom'] * width])
+    zoomScalerY = d3.scaleLinear().domain([0, width]).range([offsetY + width * (1 - controls['zoom']), offsetY + controls['zoom'] * width])
+  }
+
+  let zoomScalerX = d3.scaleLinear().domain([0, width]).range([width * (1 - controls['zoom']), controls['zoom'] * width])
+  let zoomScalerY = d3.scaleLinear().domain([0, width]).range([width * (1 - controls['zoom']), controls['zoom'] * width])
 
   function computeNodeRadii(d) {
     var thisNodeSize = nodeSizeNorm * controls['node_size'];
@@ -543,6 +738,11 @@ function vis(new_controls, data) {
       }
     }
 
+    if (initRender) {
+      findDepartmentColors(graph);
+      initRender = false;
+    }
+
     // Reset all thresholds ...
     // commented this out because it overwrites the predefined values in `config`
     // controls["min_link_weight_percentile"] = 0
@@ -551,6 +751,12 @@ function vis(new_controls, data) {
     // Run the restart if all of this was OK
     restart();
   }
+
+  function inputtedCourse(v) {
+    searchedNode = graph.nodes.filter(item => item.id === v)
+    //if (searchedNode) createSubGraph(v)
+  }
+
 
   function inputtedCharge(v) {
     console.log('Updated Charge to', v)
@@ -567,6 +773,124 @@ function vis(new_controls, data) {
     if (controls['freeze_nodes']) controls['freeze_nodes'] = false;
   }
 
+  function inputtedDistance(v) {
+    if (isWeighted && linkWeightOrder.length > 1 && controls['link_distance_variation'] > 0) {
+      simulation.force("link").distance(d => {
+        return (1 - getPercentile(d.weight, linkWeightOrder)) ** controls['link_distance_variation'] * v
+      });
+    } else {
+      simulation.force("link").distance(v);
+    }
+    simulation.alpha(1).restart();
+    if (controls['freeze_nodes']) controls['freeze_nodes'] = false;
+  }
+
+  function inputtedCollision(v) {
+    simulation.force("collide").radius(function(d) { return controls['node_collision'] * computeNodeRadii(d) });
+    if (!controls['freeze_nodes'])
+      simulation.alpha(1)
+
+    simulationSoftRestart();
+  }
+
+  function inputtedReheat(v) {
+    simulation.alpha(0.5);
+    simulation.alphaTarget(v).restart();
+    if (v) controls['freeze_nodes'] = !v;
+  }
+
+  function inputtedFreeze(v) {
+    if (v) {
+      controls['wiggle_nodes'] = !v
+      simulation.alpha(0);
+    } else {
+      simulation.alpha(0.3).alphaTarget(0).restart();
+      nodePositions = false;
+    }
+  }
+
+  function inputtedShowLabels(v) {
+    selectedNodes = [];
+    simulationSoftRestart();
+  }
+
+  function inputtedLabelSize(v) {
+    simulationSoftRestart()
+  }
+
+  function inputtedShowSingletonNodes(v) {
+    if (v) {
+      graph['nodes'].push(...negativeGraph.nodes)
+      negativeGraph['nodes'] = []
+    } else if (!v) {
+      graph['nodes'] = graph.nodes.filter(n => {
+        var keepNode = nodeStrengths[n.id] >= minLinkWeight;
+        if (!keepNode) negativeGraph['nodes'].push(n);
+        return keepNode;
+      })
+    }
+    restart();
+    simulationSoftRestart();
+  }
+
+  function inputtedNodeSizeByStrength(v) {
+    recomputeNodeNorms();
+    if (v) {
+        if (controls['display_singleton_nodes']){
+          graph.nodes.forEach(n => { n.size = nodeStrengths[n.id] > 0.0 ? nodeStrengths[n.id] : minNonzeroNodeSize })
+          negativeGraph.nodes.forEach(n => { n.size = nodeStrengths[n.id] > 0.0 ? nodeStrengths[n.id] : minNonzeroNodeSize })
+        } else {
+          graph.nodes.forEach(n => { n.size = nodeStrengths[n.id] })
+          negativeGraph.nodes.forEach(n => { n.size = nodeStrengths[n.id] })
+        }
+    } else if (!v) {
+      graph.nodes.forEach(n => { n.size = valIfValid(findNode(masterGraph, n).size, 1) })
+      negativeGraph.nodes.forEach(n => { n.size = valIfValid(findNode(masterGraph, n).size, 1) })
+    }
+    simulationSoftRestart();
+  }
+
+  function inputtedLinkWidth(v) {
+    simulationSoftRestart();
+  }
+
+  function inputtedLinkAlpha(v) {
+    simulationSoftRestart();
+  }
+
+  function inputtedNodeSize(v) {
+    if (controls['node_collision']) {
+      simulation.force("collide").radius(function(d) { return computeNodeRadii(d) })
+      if (!controls['freeze_nodes'])
+        simulation.alpha(1);
+    }
+
+    simulationSoftRestart();
+  }
+
+  function inputtedNodeStrokeSize(v) {
+    simulationSoftRestart();
+  }
+
+  function inputtedNodeSizeExponent(v) {
+    nodeSizeNorm = 1 / maxNodeSize ** (controls['node_size_variation'])
+    if (controls['node_collision']) {
+      simulation.force("collide").radius(function(d) { return computeNodeRadii(d) })
+      if (!controls['freeze_nodes'])
+        simulation.alpha(1);
+    }
+
+    simulationSoftRestart();
+  }
+
+  function inputtedZoom(v) {
+    calculate_zoomScalers(netPanningX, netPanningY)
+    simulationSoftRestart();
+  }
+
+  function inputtedLanguage(v) {
+    simulationSoftRestart();
+  }
 
   // Various utilities
   // -----------------
@@ -590,8 +914,8 @@ function vis(new_controls, data) {
         let domainScalerX = d3.scaleLinear().domain([d3.min(xVals), d3.max(xVals)]).range([width * 0.15, width * (1 - 0.15)])
         let domainScalerY = d3.scaleLinear().domain([d3.min(yVals), d3.max(yVals)]).range([width * 0.15, width * (1 - 0.15)])
         masterGraph.nodes.forEach((d, i) => {
-          d['x'] = zoomScaler.invert(domainScalerX(d.x))
-          d['y'] = zoomScaler.invert(domainScalerY(d.y))
+          d['x'] = zoomScalerX.invert(domainScalerX(d.x))
+          d['y'] = zoomScalerY.invert(domainScalerY(d.y))
         })
       }
       nodePositions = false;
@@ -706,5 +1030,25 @@ function vis(new_controls, data) {
 
   function removeConsecutiveDuplicates(a) {
     return a.filter((item, pos, arr) => pos === 0 || item !== arr[pos-1])
+  }
+
+  // Department buttons
+  let departmentToColor = {}
+  function findDepartmentColors(g) {
+    g.nodes.forEach(item => {
+      departmentToColor[data[item.id]['department']] = item.color
+    })
+    createDepartmentSections(departmentToColor)
+  }
+
+  function createDepartmentSections(dtc) {
+    departmentContainer = document.getElementById("department_container")
+    for (const department in dtc) {
+      departmentText = document.createElement("p")
+      departmentText.classList.add("department_button")
+      departmentText.innerHTML = department
+      departmentText.style.backgroundColor = dtc[department]
+      departmentContainer.appendChild(departmentText)
+    }
   }
 }
