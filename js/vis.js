@@ -1,6 +1,7 @@
 // Based on simple canvas network visualization by Mike Bostock
 // source: https://bl.ocks.org/mbostock/ad70335eeef6d167bc36fd3c04378048
 
+
 function vis(new_controls, data) {
 
   // Canvas //
@@ -186,11 +187,8 @@ function vis(new_controls, data) {
       context.fillStyle = controls['link_color']
       if (inNodes.size !== 0 || outNodes.size !== 0) return // Remove this later
     }
-    //context.beginPath();
-    //context.moveTo(zoomScaler(d.source.x), zoomScaler(d.source.y));
-    //context.lineTo(zoomScaler(d.target.x), zoomScaler(d.target.y));
     context.lineWidth = thisLinkWidth * controls['zoom'];
-    //context.stroke();
+
     let p1 = {'x': zoomScalerX(d.source.x), 'y': zoomScalerY(d.source.y)}
     let p2 = {'x': zoomScalerX(d.target.x), 'y': zoomScalerY(d.target.y)}
     var thisNodeSize = valIfValid(d.target.size, 1) ** (controls['node_size_variation']) * nodeSizeNorm * controls['node_size'];
@@ -227,7 +225,9 @@ function vis(new_controls, data) {
     if (d.id === centralNode[centralNode.length - 1]) context.strokeStyle = '#FF0000'
     else context.strokeStyle = controls['node_stroke_color']
 
-    if ((inNodes.size !== 0 || outNodes.size !== 0) && !inNodes.has(d.id) && !outNodes.has(d.id)) return
+    if ((inNodes.size !== 0 || outNodes.size !== 0) && !inNodes.has(d.id) && !outNodes.has(d.id)) {
+      return
+    }
     context.beginPath();
     context.moveTo(zoomScalerX(d.x) + thisNodeSize * (controls['zoom'] + (controls['zoom'] - 1)), zoomScalerY(d.y));
     context.arc(zoomScalerX(d.x), zoomScalerY(d.y), thisNodeSize * (controls['zoom'] + (controls['zoom'] - 1)), 0, 2 * Math.PI);
@@ -291,6 +291,7 @@ function vis(new_controls, data) {
   let outEdges = new Set();
   let inNodes = new Set();
   let outNodes = new Set();
+  let pathEdges = new Set();
   let mainGraph;
 
   function resetGraph() {
@@ -331,8 +332,10 @@ function vis(new_controls, data) {
     if (typeof (hoveredNode) != 'undefined') {
       if (selectedNodes.includes(hoveredNode)) {
         selectedNodes.splice(selectedNodes.indexOf(hoveredNode), 1)
+        pathEdges = new Set()
       } else {
         selectedNodes.push(hoveredNode);
+        if (centralNode.length > 1) findPathEdges();
       }
       simulation.restart();
     }
@@ -445,12 +448,17 @@ function vis(new_controls, data) {
     simulation.restart();
   }
 
+  function findPathEdges() {
+    pathEdges = new Set();
+    let Qin = [centralNode[centralNode.length - 1]];
+    
+  }
+
   function findSubGraph() {
     inEdges = new Set();
     inNodes = new Set();
     let Qin = [centralNode[centralNode.length - 1]];
     inNodes.add(centralNode[centralNode.length - 1]);
-    console.log(centralNode)
     while (Qin.length > 0) {
       let currentNode = Qin.shift()
       data[currentNode].ins.forEach(function (inNode, index) {
@@ -497,12 +505,23 @@ function vis(new_controls, data) {
     }
   }
 
-  function calculateGraphControls() {
-    controls['node_charge'] = -90;
-    controls['node_gravity'] = 0.1;
-    controls['link_distance'] = 30;
-    controls['zoom'] = Math.max(0.8 , 3 - (inNodes.size + outNodes.size) * 0.04);
-    controls['node_size'] = Math.min(40, 6 + (inNodes.size + outNodes.size) * 0.04)
+  function calculateGraphControls(g) {
+    console.log(g)
+    if (typeof g !== undefined && inNodes.size === 0 && outNodes.size === 0) {
+      controls['node_charge'] = -90;
+      controls['node_gravity'] = 0.1;
+      controls['link_distance'] = 30;
+      controls['zoom'] = Math.max(0.8, 3 - g.nodes.length * 0.04);
+      controls['node_size'] = Math.min(40, 6 + g.nodes.length * 0.04)
+      console.log(g.nodes.length, controls['zoom'])
+    } else {
+      controls['node_charge'] = -90;
+      controls['node_gravity'] = 0.1;
+      controls['link_distance'] = 30;
+      controls['zoom'] = Math.max(0.8 , 3 - (inNodes.size + outNodes.size) * 0.04);
+      controls['node_size'] = Math.min(40, 6 + (inNodes.size + outNodes.size) * 0.04)
+      console.log(inNodes.size, outNodes.size, controls['zoom'])
+    }
   }
 
   // Parameter controls //
@@ -559,9 +578,9 @@ function vis(new_controls, data) {
     "course_number": ""
   }
 
-  // Control panel
-  var gui = new dat.GUI({ autoPlace: false });
-  var customContainer = document.getElementsByClassName('controls_container')[0];
+// Control panel
+  let gui = new dat.GUI({ autoPlace: false });
+  let customContainer = document.getElementsByClassName('controls_container')[0];
   gui.width = customContainer.offsetWidth;
   gui.closed = false;
   customContainer.appendChild(gui.domElement);
@@ -591,7 +610,7 @@ function vis(new_controls, data) {
   f3.add(controls, 'node_size_variation', 0., 3.).name('Size variation').onChange(function(v) { inputtedNodeSizeExponent(v) }).title(title3_8).listen();
   //f3.add(controls, 'label_size', 0.5, 5).name('Label size').onChange(function(v) { inputtedLabelSize(v) }).title(title3_3);
   f3.add(controls, 'display_node_labels', false).name('Display labels').onChange(function(v) { inputtedShowLabels(v) }).title(title3_4);
-  f3.add(controls, 'scale_node_size_by_strength', false).name('Size by strength').onChange(function(v) { inputtedNodeSizeByStrength(v) }).title(title3_5);
+  //f3.add(controls, 'scale_node_size_by_strength', false).name('Size by strength').onChange(function(v) { inputtedNodeSizeByStrength(v) }).title(title3_5);
 
   // Links
   var f4 = gui.addFolder('Links'); f4.open();
@@ -604,11 +623,11 @@ function vis(new_controls, data) {
   // canvas coordinate (what we do see), and zoomScaler.invert does the opposite.
   function calculate_zoomScalers(offsetX=0, offsetY=0) {
     zoomScalerX = d3.scaleLinear().domain([0, width]).range([offsetX + width * (1 - controls['zoom']), offsetX +  controls['zoom'] * width])
-    zoomScalerY = d3.scaleLinear().domain([0, width]).range([offsetY + width * (1 - controls['zoom']), offsetY + controls['zoom'] * width])
+    zoomScalerY = d3.scaleLinear().domain([0, height]).range([offsetY + height * (1 - controls['zoom']), offsetY + controls['zoom'] * height])
   }
 
   let zoomScalerX = d3.scaleLinear().domain([0, width]).range([width * (1 - controls['zoom']), controls['zoom'] * width])
-  let zoomScalerY = d3.scaleLinear().domain([0, width]).range([width * (1 - controls['zoom']), controls['zoom'] * width])
+  let zoomScalerY = d3.scaleLinear().domain([0, height]).range([height * (1 - controls['zoom']), controls['zoom'] * height])
 
   function computeNodeRadii(d) {
     var thisNodeSize = nodeSizeNorm * controls['node_size'];
@@ -630,6 +649,7 @@ function vis(new_controls, data) {
 
   // Handle input data //
   // ----------------- //
+  let init_render = true;
 
   function handleURL() {
     if (controls['file_path'].endsWith(".json")) {
@@ -639,6 +659,13 @@ function vis(new_controls, data) {
           return false
         }
         mainGraph = _graph;
+        if (!init_render) calculateGraphControls(_graph)
+        else init_render = false
+        centralNode = [undefined];
+        inEdges = new Set();
+        outEdges = new Set();
+        inNodes = new Set();
+        outNodes = new Set();
         restartIfValidJSON(_graph);
       })
     }
@@ -833,7 +860,7 @@ function vis(new_controls, data) {
     simulationSoftRestart();
   }
 
-  function inputtedNodeSizeByStrength(v) {
+/*  function inputtedNodeSizeByStrength(v) {
     recomputeNodeNorms();
     if (v) {
         if (controls['display_singleton_nodes']){
@@ -848,7 +875,7 @@ function vis(new_controls, data) {
       negativeGraph.nodes.forEach(n => { n.size = valIfValid(findNode(masterGraph, n).size, 1) })
     }
     simulationSoftRestart();
-  }
+  }*/
 
   function inputtedLinkWidth(v) {
     simulationSoftRestart();
@@ -912,7 +939,7 @@ function vis(new_controls, data) {
         let xVals = []; let yVals = [];
         masterGraph.nodes.forEach(d => { xVals.push(d.x); yVals.push(d.y) })
         let domainScalerX = d3.scaleLinear().domain([d3.min(xVals), d3.max(xVals)]).range([width * 0.15, width * (1 - 0.15)])
-        let domainScalerY = d3.scaleLinear().domain([d3.min(yVals), d3.max(yVals)]).range([width * 0.15, width * (1 - 0.15)])
+        let domainScalerY = d3.scaleLinear().domain([d3.min(yVals), d3.max(yVals)]).range([height * 0.15, height * (1 - 0.15)])
         masterGraph.nodes.forEach((d, i) => {
           d['x'] = zoomScalerX.invert(domainScalerX(d.x))
           d['y'] = zoomScalerY.invert(domainScalerY(d.y))
@@ -1048,6 +1075,10 @@ function vis(new_controls, data) {
       departmentText.classList.add("department_button")
       departmentText.innerHTML = department
       departmentText.style.backgroundColor = dtc[department]
+      departmentText.addEventListener("click", function() {
+        controls['file_path'] = `../networks/${department.substring(0,2)}/network.json`
+        handleURL()
+      })
       departmentContainer.appendChild(departmentText)
     }
   }

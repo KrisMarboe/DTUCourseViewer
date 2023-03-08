@@ -1,23 +1,44 @@
 :root {
-	--major-width: 95vw;
-	--major-height: 65.19607845vw;
-	--canvas-dim: 64.730392155vw;
-	--sidebar-width: 27.941176465vw;
+	--major-width: 100vw;
+	--major-height: 95vh;
+	--canvas-width: 67vw;
+	--canvas-height: 93vh;
+	--sidebar-width: 17vw;
 	--department-width: 16vw;
+	overflow: hidden;
 }
 
-.parent_div {
-	width: var(--major-width);
-	height: var(--major-height);
-	/*max-width: 138.428571415vh;*/
-	max-height: 95vh;
+.parent_div0 {
+	width: 100vw;
+	height: 5vh;
+	/*border: red dashed 2px;*/
+	background-color: gray;
 	position: absolute;
-	margin: auto;
 	top: 0;
 	right: 0;
 	bottom: 0;
 	left: 0;
-	border: black solid 2px;
+}
+
+h1 {
+	margin: 0;
+	padding: 0;
+	color: white;
+}
+
+.parent_div1 {
+	width: var(--major-width);
+	height: var(--major-height);
+	max-width: var(--major-width);
+	max-height: var(--major-height);
+	position: absolute;
+	/*margin: auto;*/
+	top: 5vh;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	/*border: black solid 2px;*/
+	background-color: darkgray;
 	display: flex;
     justify-content: space-between;
 }
@@ -25,10 +46,10 @@
 .child_div0 {
 	width: var(--department-width);
 	height: var(--major-height);
-	max-width: 16vw;
-	max-height: 94vh;
+	max-width: var(--department-width);
+	max-height: var(--canvas-height);
 	display: inline-block;
-	border: black solid 2px;
+	/*border: black solid 2px;*/
 	overflow-x: hidden;
 	overflow-y: scroll;
 	-ms-overflow-style: none;
@@ -40,50 +61,55 @@
 }
 
 #department_container {
-	float: left;
+	align-content: center;
 }
 
 .department_button {
 	color: white;
 	border-radius: 6px;
 	padding: 12px;
+	margin-left: 4px;
+	margin-right: 4px;
 }
 
 .child_div1 {
-	width: var(--major-height);
+	width: var(--canvas-width);
 	height: var(--major-height);
-	max-width: 95vh;
-	max-height: 95vh;
+	max-width: var(--canvas-width);
+	max-height: var(--canvas-height);
 	display: inline-block;
-	border: black solid 2px;
+	/*border: black solid 2px;*/
+	background-color: lightgray;
 	/*float: none;*/
 }
 
 .canvas_container {
-	width: var(--canvas-dim);
-	height: var(--canvas-dim);
-	max-width: 94.321428542vh;
-	max-height: 94.321428542vh;
+	width: var(--canvas-width);
+	height: var(--canvas-height);
+	max-width: var(--canvas-width);
+	max-height: var(--canvas-height);
+	/*border: black solid 2px*/
 }
 
 .child_div2 {
 	width: var(--sidebar-width);
 	height: var(--major-height);
-	max-width: 40.714285702vh;
-	max-height: 95vh;
+	max-width: var(--sidebar-width);
+	max-height: var(--canvas-height);
 	display: inline-block;
-	border: black solid 2px;
+	/*border: black solid 2px;*/
 	/*float: right;
 	overflow-y: scroll;*/
+	background-color: dimgray;
 }
 
 .controls_container {
 	width: var(--sidebar-width);
-	max-width: 40.714285702vh;
+	max-width: var(--sidebar-width);
 	position: relative;
 }
 
 body {
-    background-color: lightgoldenrodyellow;
+    background-color: aqua;
     text-align: center;
 }
