@@ -1,8 +1,8 @@
 :root {
 	--major-width: 100vw;
 	--major-height: 95vh;
-	--canvas-width: 67vw;
-	--canvas-height: 93vh;
+	--canvas-width: 100vw;
+	--canvas-height: 95vh;
 	--sidebar-width: 17vw;
 	--department-width: 16vw;
 	overflow: hidden;
@@ -11,7 +11,6 @@
 .parent_div0 {
 	width: 100vw;
 	height: 5vh;
-	/*border: red dashed 2px;*/
 	background-color: gray;
 	position: absolute;
 	top: 0;
@@ -21,9 +20,13 @@
 }
 
 h1 {
-	margin: 0;
-	padding: 0;
+	margin: 4px auto;
+	display: inline-block;
 	color: white;
+}
+
+h1:hover {
+	cursor: pointer;
 }
 
 .parent_div1 {
@@ -32,12 +35,10 @@ h1 {
 	max-width: var(--major-width);
 	max-height: var(--major-height);
 	position: absolute;
-	/*margin: auto;*/
 	top: 5vh;
 	right: 0;
 	bottom: 0;
 	left: 0;
-	/*border: black solid 2px;*/
 	background-color: darkgray;
 	display: flex;
     justify-content: space-between;
@@ -45,16 +46,15 @@ h1 {
 
 .child_div0 {
 	width: var(--department-width);
+	min-width: 160px;
 	height: var(--major-height);
-	max-width: var(--department-width);
+	max-width: 240px;
 	max-height: var(--canvas-height);
-	display: inline-block;
-	/*border: black solid 2px;*/
+	position: absolute;
 	overflow-x: hidden;
 	overflow-y: scroll;
-	-ms-overflow-style: none;
-	/*overflow-y: scroll;*/
-	/*float: none;*/
+	-ms-overflow-style: none; /* IE 11 */
+    scrollbar-width: none; /* Firefox 64 */
 }
 .child_div0::-webkit-scrollbar {
   display: none;
@@ -68,8 +68,13 @@ h1 {
 	color: white;
 	border-radius: 6px;
 	padding: 12px;
-	margin-left: 4px;
-	margin-right: 4px;
+	margin: 10px 6px;
+	display: block;
+	box-shadow: 3px 3px 3px dimgray;
+}
+
+.active_department {
+	border: solid red 3px;
 }
 
 .child_div1 {
@@ -78,9 +83,7 @@ h1 {
 	max-width: var(--canvas-width);
 	max-height: var(--canvas-height);
 	display: inline-block;
-	/*border: black solid 2px;*/
 	background-color: lightgray;
-	/*float: none;*/
 }
 
 .canvas_container {
@@ -88,28 +91,33 @@ h1 {
 	height: var(--canvas-height);
 	max-width: var(--canvas-width);
 	max-height: var(--canvas-height);
-	/*border: black solid 2px*/
 }
 
 .child_div2 {
 	width: var(--sidebar-width);
-	height: var(--major-height);
-	max-width: var(--sidebar-width);
+	max-width: 300px;
+	min-width: 240px;
 	max-height: var(--canvas-height);
-	display: inline-block;
-	/*border: black solid 2px;*/
-	/*float: right;
-	overflow-y: scroll;*/
-	background-color: dimgray;
+	padding-bottom: 20px;
+	position: absolute;
+	right: 0;
+	overflow: auto;
+	-ms-overflow-style: none; /* IE 11 */
+    scrollbar-width: none; /* Firefox 64 */
+}
+.child_div2::-webkit-scrollbar {
+  display: none;
 }
 
 .controls_container {
 	width: var(--sidebar-width);
-	max-width: var(--sidebar-width);
+	max-width: 300px;
+	min-width: 240px;
 	position: relative;
 }
 
 body {
-    background-color: aqua;
+    background-color: dimgray;
     text-align: center;
 }
+

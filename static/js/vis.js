@@ -256,12 +256,12 @@ function vis(new_controls, data) {
     context.textAlign = "right";
     const txt = data[hoveredNode]['department']
     const txtWidth = context.measureText(txt).width
-    context.strokeText(txt, canvas.offsetWidth-20, 20);
-    context.fillText(txt, canvas.offsetWidth-20, 20);
+    context.strokeText(txt, canvas.offsetWidth/2-20+txtWidth/2, 20);
+    context.fillText(txt, canvas.offsetWidth/2-20+txtWidth/2, 20);
     context.lineWidth = controls['node_stroke_width'] < 1e-3 ? 1e-9 : controls['node_stroke_width'];
     context.beginPath();
-    context.moveTo(canvas.offsetWidth-40-txtWidth + 8, 15);
-    context.arc(canvas.offsetWidth-40-txtWidth, 15, 8, 0, 2 * Math.PI);
+    context.moveTo(canvas.offsetWidth/2-40-txtWidth/2 + 8, 15);
+    context.arc(canvas.offsetWidth/2-40-txtWidth/2, 15, 8, 0, 2 * Math.PI);
     context.fillStyle = hoveredNodeColor;
     context.fill();
     context.stroke();
@@ -766,7 +766,6 @@ function vis(new_controls, data) {
     }
 
     if (initRender) {
-      findDepartmentColors(graph);
       initRender = false;
     }
 
@@ -781,7 +780,7 @@ function vis(new_controls, data) {
 
   function inputtedCourse(v) {
     searchedNode = graph.nodes.filter(item => item.id === v)
-    //if (searchedNode) createSubGraph(v)
+    if (searchedNode) createSubGraph(v)
   }
 
 
@@ -986,7 +985,7 @@ function vis(new_controls, data) {
   function recomputeNodeNorms() {
     // Compute node size norms
     if (controls['scale_node_size_by_strength']) {
-      maxNodeSize = d3.max(d3.values(masterNodeStrengths))
+      maxNodeSize = Math.max(d3.max(d3.values(masterNodeStrengths)), 1)
       let all_strengths = d3.values(masterNodeStrengths)
       all_strengths.sort();
       let i = -1;
@@ -1057,29 +1056,5 @@ function vis(new_controls, data) {
 
   function removeConsecutiveDuplicates(a) {
     return a.filter((item, pos, arr) => pos === 0 || item !== arr[pos-1])
-  }
-
-  // Department buttons
-  let departmentToColor = {}
-  function findDepartmentColors(g) {
-    g.nodes.forEach(item => {
-      departmentToColor[data[item.id]['department']] = item.color
-    })
-    createDepartmentSections(departmentToColor)
-  }
-
-  function createDepartmentSections(dtc) {
-    departmentContainer = document.getElementById("department_container")
-    for (const department in dtc) {
-      departmentText = document.createElement("p")
-      departmentText.classList.add("department_button")
-      departmentText.innerHTML = department
-      departmentText.style.backgroundColor = dtc[department]
-      departmentText.addEventListener("click", function() {
-        controls['file_path'] = `../networks/${department.substring(0,2)}/network.json`
-        handleURL()
-      })
-      departmentContainer.appendChild(departmentText)
-    }
   }
 }

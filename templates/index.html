@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>DTUCourseViewer</title>
+<script src="{{ url_for('static', filename='js/libs/d3.v4.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/libs/dat.gui.js') }}"></script>
+<script src="{{ url_for('static', filename='js/libs/sweetalert2.all.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/libs/lodash.js') }}"></script>
+<script src="{{ url_for('static', filename='js/vis.js') }}"></script>
+<script>
+    // =========== GET DATA AND CONFIG FROM URL PARAMETERS =================
+    window.addEventListener('load', () => {
+        loadNetwork("{{ network_path }}", "{{ data_path }}", "{{ config_path }}");
+    })
+
+    function loadNetwork(network_path, data_path, config_path) {
+        controls = {};
+        controls['file_path'] = network_path;
+        d3.json(data_path, function(_data) {
+            d3.json(config_path, new_controls => {
+                controls = {...controls, ...new_controls}
+                vis(controls, _data);
+            })
+        })
+    }
+</script>
+{% endblock %}
+
+{% block body %}
+<div class="parent_div0">
+    <h1 onclick="window.location.href='/'">DTU Course Viewer</h1>
+</div>
+<div class="parent_div1">
+    <div class="child_div0">
+        <div id="department_container"></div>
+        {% for department in departments %}
+            {% if department.name[:2] == active_department %}
+            <a href="/{{ department.name[:2] }}" class="department_button active_department" style="background-color: {{department.color}};">{{ department.name }}</a>
+            {% else %}
+            <a href="/{{ department.name[:2] }}" class="department_button" style="background-color: {{department.color}};">{{ department.name }}</a>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class="child_div1">
+        <div class="canvas_container">
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
+    <div class="child_div2">
+        <div class="controls_container"></div>
+    </div>
+</div>
+{% endblock %}
