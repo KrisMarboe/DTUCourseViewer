@@ -62,7 +62,9 @@ function vis(new_controls, data) {
        "link_width_variation": 0.5,
        "display_singleton_nodes": true,
        "min_link_weight_percentile": 0,
-       "max_link_weight_percentile": 1}
+       "max_link_weight_percentile": 1,
+       "direct_requirements": false
+  }
 
   // Overwrite default controls with inputted controls
   d3.keys(new_controls).forEach(key => {
@@ -464,7 +466,9 @@ function vis(new_controls, data) {
       data[currentNode].ins.forEach(function (inNode, index) {
         if (!inNodes.has(inNode)) {
           inNodes.add(inNode);
-          Qin.push(inNode)
+          if (!window.controls['direct_requirements']) {
+            Qin.push(inNode)
+          }
         }
         inEdges.add(inNode + '_' + currentNode);
       })
@@ -557,15 +561,14 @@ function vis(new_controls, data) {
   var title1_1 = "Zoom: Zoom in or out"
   var title1_2 = "Language: Either danish or english"
   var title1_3 = "Singleton nodes: Whether or not to show links that have zero degree"
+  var title1_4 = "Direct requirements: Only show the direct requirements"
   var title2_1 = "Charge: Each node has negative charge and thus repel one another (like electrons). The more negative this charge is, the greater the repulsion"
   var title2_2 = "Gravity: Push the nodes more or less towards the center of the canvas"
   var title2_3 = "Link distance: The optimal link distance that the force layout algorithm will try to achieve for each link"
   var title2_5 = "Collision: Make it harder for nodes to overlap"
   var title2_6 = "Wiggle: Increase the force layout algorithm temperature to make the nodes wiggle. Useful for big networks that need some time for the nodes to settle in the right positions"
   var title2_7 = "Freeze: Set force layout algorithm temperature to zero, causing the nodes to freeze in their position."
-  var title3_3 = "Label size: The size of the course names"
   var title3_4 = "Display labels: Whether to show labels or not"
-  var title3_5 = "Size by strength: Rescale the size of each node relative to their strength (weighted degree)"
   var title3_6 = "Size: Change the size of all nodes"
   var title3_7 = "Stroke width: Change the width of the ring around nodes"
   var title3_8 = "Size variation: Tweak the node size scaling function. Increase to make big nodes bigger and small nodes smaller. Useful for highlighting densely connected nodes."
@@ -593,6 +596,7 @@ function vis(new_controls, data) {
   f1.add(controls, 'zoom', 0.6, 5).name('Zoom').onChange(function(v) { inputtedZoom(v) }).title(title1_1).listen();
   f1.add(settings, 'language', ['danish', 'english']).name('Language').onChange(function(v) { inputtedLanguage(v) }).title(title1_2);
   f1.add(controls, 'display_singleton_nodes', true).name('Singleton nodes').onChange(function(v) { inputtedShowSingletonNodes(v) }).title(title1_3);
+  f1.add(controls, 'direct_requirements', true).name('Direct requirements').onChange(function(v) { inputtedDirectRequirements(v) }).title(title1_4)
 
   // Physics
   var f2 = gui.addFolder('Physics'); f2.open();
@@ -780,7 +784,8 @@ function vis(new_controls, data) {
 
   function inputtedCourse(v) {
     searchedNode = graph.nodes.filter(item => item.id === v)
-    if (searchedNode) createSubGraph(v)
+    console.log(v, searchedNode)
+    if (searchedNode.length > 0) createSubGraph(v)
   }
 
 
@@ -797,6 +802,12 @@ function vis(new_controls, data) {
     simulation.force("y").strength(+v);
     simulation.alpha(1).restart();
     if (controls['freeze_nodes']) controls['freeze_nodes'] = false;
+  }
+
+  function inputtedDirectRequirements(v) {
+    if (centralNode[centralNode.length - 1] !== undefined) {
+      createSubGraph()
+    }
   }
 
   function inputtedDistance(v) {
@@ -838,10 +849,6 @@ function vis(new_controls, data) {
   function inputtedShowLabels(v) {
     selectedNodes = [];
     simulationSoftRestart();
-  }
-
-  function inputtedLabelSize(v) {
-    simulationSoftRestart()
   }
 
   function inputtedShowSingletonNodes(v) {

@@ -1,16 +1,17 @@
 :root {
+	--top-bar-height: 40px;
 	--major-width: 100vw;
-	--major-height: 95vh;
+	--major-height: calc(100vh - var(--top-bar-height));
 	--canvas-width: 100vw;
-	--canvas-height: 95vh;
+	--canvas-height: calc(100vh - var(--top-bar-height));
 	--sidebar-width: 17vw;
 	--department-width: 16vw;
 	overflow: hidden;
 }
 
 .parent_div0 {
-	width: 100vw;
-	height: 5vh;
+	width: var(--major-width);
+	height: var(--top-bar-height);
 	background-color: gray;
 	position: absolute;
 	top: 0;
@@ -20,7 +21,7 @@
 }
 
 h1 {
-	margin: 4px auto;
+	margin: 2px auto;
 	display: inline-block;
 	color: white;
 }
@@ -35,7 +36,7 @@ h1:hover {
 	max-width: var(--major-width);
 	max-height: var(--major-height);
 	position: absolute;
-	top: 5vh;
+	top: var(--top-bar-height);
 	right: 0;
 	bottom: 0;
 	left: 0;

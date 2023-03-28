@@ -35,7 +35,7 @@
         <div id="department_container"></div>
         {% for department in departments %}
             {% if department.name[:2] == active_department %}
-            <a href="/{{ department.name[:2] }}" class="department_button active_department" style="background-color: {{department.color}};">{{ department.name }}</a>
+            <a href="/{{ department.name[:2] }}" class="department_button active_department" style="background-color: {{department.color}};" autofocus>{{ department.name }}</a>
             {% else %}
             <a href="/{{ department.name[:2] }}" class="department_button" style="background-color: {{department.color}};">{{ department.name }}</a>
             {% endif %}
