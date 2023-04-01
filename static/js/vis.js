@@ -274,15 +274,7 @@ function vis(new_controls, data) {
   // Key events //
   // ---------- //
 
-  var shiftDown = false
-  window.onkeydown = function() {
-    if (window.event.keyCode == 16) {
-      shiftDown = true;
-    }
-  }
-  window.onkeyup = function() {
-    shiftDown = false;
-  }
+  var cntrlIsPressed = false;
 
   let hoveredNode;
   let hoveredNodeColor;
@@ -338,6 +330,9 @@ function vis(new_controls, data) {
       } else {
         selectedNodes.push(hoveredNode);
         if (centralNode.length > 1) findPathEdges();
+      }
+      if (cntrlIsPressed) {
+        window.open(`https://kurser.dtu.dk/course/${hoveredNode}`, '_blank');
       }
       simulation.restart();
     }
@@ -426,7 +421,15 @@ function vis(new_controls, data) {
         } else if (centralNode.length === 2) {
           resetGraph()
         }
+        break
+      case "Control":
+        cntrlIsPressed = true;
+        break
     }
+  });
+
+  document.body.addEventListener('keyup', function(e) {
+    cntrlIsPressed = false;
   });
 
   function createSubGraph(id=undefined) {
@@ -557,7 +560,6 @@ function vis(new_controls, data) {
   });
 
   // Titles
-  var title1_0 = "Search: Search after course by course number or title"
   var title1_1 = "Zoom: Zoom in or out"
   var title1_2 = "Language: Either danish or english"
   var title1_3 = "Singleton nodes: Whether or not to show links that have zero degree"
@@ -577,8 +579,7 @@ function vis(new_controls, data) {
 
   // settings
   let settings = {
-    "language": "danish",
-    "course_number": ""
+    "language": "danish"
   }
 
 // Control panel
@@ -592,7 +593,6 @@ function vis(new_controls, data) {
 
   // Display
   var f1 = gui.addFolder('Display'); f1.open();
-  f1.add(settings, 'course_number', ).name('Search').onFinishChange(function(v) { inputtedCourse(v) }).title(title1_0).listen();
   f1.add(controls, 'zoom', 0.6, 5).name('Zoom').onChange(function(v) { inputtedZoom(v) }).title(title1_1).listen();
   f1.add(settings, 'language', ['danish', 'english']).name('Language').onChange(function(v) { inputtedLanguage(v) }).title(title1_2);
   f1.add(controls, 'display_singleton_nodes', true).name('Singleton nodes').onChange(function(v) { inputtedShowSingletonNodes(v) }).title(title1_3);
@@ -671,6 +671,8 @@ function vis(new_controls, data) {
         inNodes = new Set();
         outNodes = new Set();
         restartIfValidJSON(_graph);
+        let courses = graph.nodes.map(n => n.id + ': ' + data[n.id][`${settings['language']} title`]);
+        autocomplete(document.getElementById("course_search"), courses);
       })
     }
   }
@@ -783,8 +785,7 @@ function vis(new_controls, data) {
   }
 
   function inputtedCourse(v) {
-    searchedNode = graph.nodes.filter(item => item.id === v)
-    console.log(v, searchedNode)
+    searchedNode = mainGraph.nodes.filter(item => item.id === v)
     if (searchedNode.length > 0) createSubGraph(v)
   }
 
@@ -1063,5 +1064,115 @@ function vis(new_controls, data) {
 
   function removeConsecutiveDuplicates(a) {
     return a.filter((item, pos, arr) => pos === 0 || item !== arr[pos-1])
+  }
+
+  function autocomplete(inp, arr) {
+    /*the autocomplete function takes two arguments,
+    the text field element and an array of possible autocompleted values:*/
+    var currentFocus;
+    /*execute a function when someone writes in the text field:*/
+    inp.addEventListener("input", function(e) {
+        var a, b, i, val = this.value;
+        /*close any already open lists of autocompleted values*/
+        closeAllLists();
+        if (!val || val.length < 2) { return false;}
+        currentFocus = -1;
+        /*create a DIV element that will contain the items (values):*/
+        a = document.createElement("DIV");
+        a.setAttribute("id", this.id + "autocomplete-list");
+        a.setAttribute("class", "autocomplete-items");
+        /*append the DIV element as a child of the autocomplete container:*/
+        this.parentNode.appendChild(a);
+        /*for each item in the array...*/
+        for (i = 0; i < arr.length; i++) {
+            const match = arr[i].toUpperCase().search(val.toUpperCase())
+            /*check if the item starts with the same letters as the text field value:*/
+            if (match !== -1) {
+                /*create a DIV element for each matching element:*/
+                b = document.createElement("DIV");
+                /*make the matching letters bold:*/
+                b.innerHTML = arr[i].substr(0, match);
+                b.innerHTML += "<strong>" + arr[i].substr(match, val.length) + "</strong>";
+                b.innerHTML += arr[i].substr(match + val.length);
+                /*insert a input field that will hold the current array item's value:*/
+                b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+                /*execute a function when someone clicks on the item value (DIV element):*/
+                b.addEventListener("click", function(e) {
+                    /*insert the value for the autocomplete text field:*/
+                    inp.value = this.getElementsByTagName("input")[0].value;
+                    inputtedCourse(inp.value.substring(0, 5))
+                    /*close the list of autocompleted values,
+                    (or any other open lists of autocompleted values:*/
+                    closeAllLists();
+                });
+            a.appendChild(b);
+            }
+        }
+    });
+    /*execute a function presses a key on the keyboard:*/
+    inp.addEventListener("keydown", function(e) {
+        var x = document.getElementById(this.id + "autocomplete-list");
+        if (x) x = x.getElementsByTagName("div");
+        if (e.keyCode === 40) {
+            /*If the arrow DOWN key is pressed,
+            increase the currentFocus variable:*/
+            currentFocus++;
+            /*and and make the current item more visible:*/
+            addActive(x);
+        } else if (e.keyCode === 38) { //up
+            /*If the arrow UP key is pressed,
+            decrease the currentFocus variable:*/
+            currentFocus--;
+            /*and and make the current item more visible:*/
+            addActive(x);
+        } else if (e.keyCode === 13) {
+            /*If the ENTER key is pressed, prevent the form from being submitted,*/
+            e.preventDefault();
+            if (currentFocus > -1) {
+            /*and simulate a click on the "active" item:*/
+                if (x) x[currentFocus].click();
+            } else {
+              inputtedCourse(this.value)
+            }
+        } else if (e.keyCode === 27) {
+          /*If ESCAPE key is pressed, prevent propagation so the network is not updated*/
+            this.blur()
+            canvas.click()
+            e.stopPropagation()
+        } else if (e.keyCode === 8) {
+          /*If BACKSPACE key is pressed, prevent propagation so the network is not reset*/
+            e.stopPropagation()
+        }
+    });
+    function addActive(x) {
+    /*a function to classify an item as "active":*/
+    if (!x) return false;
+    /*start by removing the "active" class on all items:*/
+    removeActive(x);
+    if (currentFocus >= x.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = (x.length - 1);
+        /*add class "autocomplete-active":*/
+        x[currentFocus].classList.add("autocomplete-active");
+    }
+    function removeActive(x) {
+        /*a function to remove the "active" class from all autocomplete items:*/
+        for (var i = 0; i < x.length; i++) {
+          x[i].classList.remove("autocomplete-active");
+        }
+    }
+    function closeAllLists(elmnt) {
+        /*close all autocomplete lists in the document,
+        except the one passed as an argument:*/
+        var x = document.getElementsByClassName("autocomplete-items");
+        for (var i = 0; i < x.length; i++) {
+            if (elmnt != x[i] && elmnt != inp) {
+                x[i].parentNode.removeChild(x[i]);
+            }
+        }
+    }
+    /*execute a function when someone clicks in the document:*/
+    document.addEventListener("click", function (e) {
+        closeAllLists(e.target);
+    });
   }
 }

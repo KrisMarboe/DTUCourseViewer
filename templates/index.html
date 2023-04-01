@@ -23,11 +23,34 @@
             })
         })
     }
+
+    function toggleInfo(value) {
+        let ele = document.getElementById('info_box')
+        ele.style.display = value
+    }
 </script>
 {% endblock %}
 
 {% block body %}
 <div class="parent_div0">
+    <label for="course_search" id="label_for_course_search">&#x1F50E;&#xFE0E;</label>
+    <div class="autocomplete">
+        <input type="text" name="course_search" id="course_search" autocomplete="off">
+    </div>
+    <span id="info_icon" onmouseover="toggleInfo('block')" onmouseleave="toggleInfo('none')">&#9432;</span>
+    <div id="info_box">
+        <h3>Controls</h3>
+        <table>
+            <tr>
+                <th>Key</th><th>Action</th>
+            </tr>
+            {% for key, action in controls.items() %}
+            <tr>
+                <td class="table_cell_key">{{key}}</td><td class="table_cell_action">{{action}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
     <h1 onclick="window.location.href='/'">DTU Course Viewer</h1>
 </div>
 <div class="parent_div1">

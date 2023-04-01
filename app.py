@@ -16,6 +16,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
 with app.app_context():
     db = SQLAlchemy(app)
 
+controls = {
+    "Escape": "Reset graph",
+    "Backspace": "Undo course selection",
+    "Scroll": "Zoom in/out",
+    "Double click": "Create focused network for selected course",
+    "Click + Drag": "Move the network",
+    "Ctrl + Click": "Open course page in new tab"
+}
 
 class Department(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -41,7 +49,8 @@ def index():
             data_path=data_path,
             config_path=config_path,
             departments=departments,
-            active_department="All"
+            active_department="All",
+            controls=controls
         )
 
 
@@ -60,7 +69,8 @@ def departments(department):
             data_path=data_path,
             config_path=config_path,
             departments=departments,
-            active_department=department
+            active_department=department,
+            controls=controls
         )
 
 
