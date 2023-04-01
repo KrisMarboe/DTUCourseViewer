@@ -594,7 +594,7 @@ function vis(new_controls, data) {
   // Display
   var f1 = gui.addFolder('Display'); f1.open();
   f1.add(controls, 'zoom', 0.6, 5).name('Zoom').onChange(function(v) { inputtedZoom(v) }).title(title1_1).listen();
-  f1.add(settings, 'language', ['danish', 'english']).name('Language').onChange(function(v) { inputtedLanguage(v) }).title(title1_2);
+  //f1.add(settings, 'language', ['danish', 'english']).name('Language').onChange(function(v) { inputtedLanguage(v) }).title(title1_2);
   f1.add(controls, 'display_singleton_nodes', true).name('Singleton nodes').onChange(function(v) { inputtedShowSingletonNodes(v) }).title(title1_3);
   f1.add(controls, 'direct_requirements', true).name('Direct requirements').onChange(function(v) { inputtedDirectRequirements(v) }).title(title1_4)
 
