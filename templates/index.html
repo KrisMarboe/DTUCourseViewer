@@ -2,6 +2,10 @@
 
 {% block head %}
 <title>DTUCourseViewer</title>
+<style>
+    @import url('https://fonts.cdnfonts.com/css/neo-sans-pro');
+</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
 <script src="{{ url_for('static', filename='js/libs/d3.v4.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/libs/dat.gui.js') }}"></script>
 <script src="{{ url_for('static', filename='js/libs/sweetalert2.all.min.js') }}"></script>
@@ -9,7 +13,12 @@
 <script src="{{ url_for('static', filename='js/vis.js') }}"></script>
 <script>
     // =========== GET DATA AND CONFIG FROM URL PARAMETERS =================
+    let department2color = {};
     window.addEventListener('load', () => {
+        let department_elements = document.getElementsByClassName("department_button")
+        Object.values(department_elements).forEach(department => {
+            department2color[department.innerHTML] = department.style.backgroundColor
+        })
         loadNetwork("{{ network_path }}", "{{ data_path }}", "{{ config_path }}");
     })
 
@@ -33,7 +42,7 @@
 
 {% block body %}
 <div class="parent_div0">
-    <label for="course_search" id="label_for_course_search">&#x1F50E;&#xFE0E;</label>
+    <label for="course_search" id="label_for_course_search" style="color: white;">&#x1F50E;&#xFE0E;</label>
     <div class="autocomplete">
         <input type="text" name="course_search" id="course_search" autocomplete="off">
     </div>
@@ -55,14 +64,24 @@
 </div>
 <div class="parent_div1">
     <div class="child_div0">
-        <div id="department_container"></div>
+        <button id="hide_department_button" onclick="
+            if (this.innerHTML === 'Close Departments') {
+                this.innerHTML =  'Open Departments'
+                this.nextElementSibling.style.display = 'none'
+            } else {
+                this.innerHTML =  'Close Departments'
+                this.nextElementSibling.style.display = 'block'
+            }
+        ">Close Departments</button>
+        <div id="department_container">
         {% for department in departments %}
             {% if department.name[:2] == active_department %}
-            <a href="/{{ department.name[:2] }}" class="department_button active_department" style="background-color: {{department.color}};" autofocus>{{ department.name }}</a>
+            <a href="/{{ department.name[:2] }}" class="department_button active_department" style="background-color: {{department.color}};" autofocus>{{ department.name if department.id != 0 else department.name[3:] }}</a>
             {% else %}
-            <a href="/{{ department.name[:2] }}" class="department_button" style="background-color: {{department.color}};">{{ department.name }}</a>
+            <a href="/{{ department.name[:2] }}" class="department_button" style="background-color: {{department.color}};">{{ department.name if department.id != 0 else department.name[3:] }}</a>
             {% endif %}
         {% endfor %}
+        </div>
     </div>
     <div class="child_div1">
         <div class="canvas_container">

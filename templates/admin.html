@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>DTUCourseViewer</title>
+<script>
+    function picker2value(id) {
+        document.getElementById(`value_${id}`).value = document.getElementById(`picker_${id}`).value
+    }
+    function value2picker(id) {
+        document.getElementById(`picker_${id}`).value = document.getElementById(`value_${id}`).value
+    }
+    function updateColor(id) {
+        window.location.href = `/admin/${id}/${document.getElementById(`picker_${id}`).value.substring(1)}`
+    }
+</script>
+{% endblock %}
+
+{% block body %}
+<table>
+    {% for department in departments %}
+        {% if loop.index == 1 %}
+            <tr>
+                <th>Department</th>
+                <th>Color</th>
+                <th>Value</th>
+                <th>Update</th>
+            </tr>
+        {% endif %}
+        <tr>
+            <td>{{department.name}}</td>
+            <td><input type="color" id="picker_{{department.id}}" name="picker_{{department.id}}" value="{{department.color}}" onchange="picker2value('{{department.id}}')"></td>
+            <td><input type="text" id="value_{{department.id}}" name="value_{{department.id}}" value="{{department.color}}" onchange="value2picker('{{department.id}}')"></td>
+            <td><button onclick="updateColor('{{department.id}}')">>></button></td>
+        </tr>
+    {% endfor %}
+</table>
+{% endblock %}

@@ -1,19 +1,24 @@
 :root {
-	--top-bar-height: 40px;
+	--top-bar-height: 3rem;
 	--major-width: 100vw;
 	--major-height: calc(100vh - var(--top-bar-height));
 	--canvas-width: 100vw;
 	--canvas-height: calc(100vh - var(--top-bar-height));
 	--sidebar-width: 17vw;
 	--department-width: 16vw;
+	--background-color: #ffe6e6;
+	--dtu-color: #990000;
+	--font-color: #ffffff;
+	--table-cell-color: #cc0000;
+	--active-color: #ffffff;
 	overflow: hidden;
-	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-family: 'Neo Sans Pro', sans-serif;
 }
 
 .parent_div0 {
 	width: var(--major-width);
 	height: var(--top-bar-height);
-	background-color: gray;
+	background-color: var(--dtu-color);
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -22,9 +27,9 @@
 }
 
 h1 {
-	margin: 2px auto;
+	margin: 0.25rem auto;
 	display: inline-block;
-	color: white;
+	color: var(--font-color);
 }
 
 h1:hover {
@@ -32,38 +37,40 @@ h1:hover {
 }
 
 h3 {
-	margin-bottom: 2px;
-	margin-top: 2px;
+	margin-bottom: 0.25rem;
+	margin-top: 0.25rem;
+	color: var(--font-color);
 }
 
 #info_icon {
-	font-size: 24px;
-	color: white;
+	font-size: 1.5rem;
+	color: var(--font-color);
 	float: right;
-	margin-right: 10px;
-	margin-top: 4px;
+	margin-right: 1rem;
+	margin-top: 0.6rem;
 }
 
 #info_box {
 	display: none;
 	position: absolute;
 	width: 40vw;
-	border-radius: 8px;
+	border-radius: 0.5rem;
 	z-index: 1;
-	background-color: grey;
+	background-color: var(--dtu-color);
 	border-color: black;
-	padding: 4px;
-	top: 50px;
-	right: 10px;
+	padding: 0.3rem;
+	top: 3.5rem;
+	right: 0.5rem;
 }
 
 table {
 	table-layout: auto;
 	width: 100%;
+	color: var(--font-color)
 }
 
 td {
-	background-color: lightgray;
+	background-color: var(--table-cell-color);
 }
 
 .table_cell_key {
@@ -91,36 +98,55 @@ td {
 
 .child_div0 {
 	width: var(--department-width);
-	min-width: 180px;
+	min-width: 11rem;
 	height: var(--major-height);
-	max-width: 240px;
+	max-width: 15rem;
 	max-height: var(--canvas-height);
 	position: absolute;
+}
+
+#department_container {
+	position: relative;
+	margin-top: 1rem;
+	height: calc(100% - 1rem);
 	overflow-x: hidden;
 	overflow-y: scroll;
 	-ms-overflow-style: none; /* IE 11 */
     scrollbar-width: none; /* Firefox 64 */
 }
-.child_div0::-webkit-scrollbar {
+
+#department_container::-webkit-scrollbar {
   display: none;
 }
 
-#department_container {
-	align-content: center;
+#hide_department_button {
+	font-size: 0.7rem;
+	background-color: black;
+	color: var(--font-color);
+	width: 100%;
+	border: 0;
+	position: absolute;
+	left: 0;
+	top: 0;
+	padding: 0.25rem;
+	z-index: 1;
+}
+#hide_department_button:hover {
+	cursor: pointer;
 }
 
 .department_button {
-	color: white;
+	color: var(--font-color);
 	text-decoration: none;
-	border-radius: 6px;
-	padding: 12px;
-	margin: 10px 6px;
+	border-radius: 0.4rem;
+	padding: 0.7rem;
+	margin: 0.6rem 0.4rem;
 	display: block;
-	box-shadow: 3px 3px 3px dimgray;
+	box-shadow: 0.2rem 0.2rem 0.2rem dimgray;
 }
 
 .active_department {
-	border: solid red 3px;
+	border: solid var(--active-color) 0.2rem;
 }
 
 .child_div1 {
@@ -129,7 +155,7 @@ td {
 	max-width: var(--canvas-width);
 	max-height: var(--canvas-height);
 	display: inline-block;
-	background-color: lightgray;
+	background-color: var(--background-color);
 }
 
 .canvas_container {
@@ -141,10 +167,10 @@ td {
 
 .child_div2 {
 	width: var(--sidebar-width);
-	max-width: 300px;
-	min-width: 240px;
+	max-width: 18rem;
+	min-width: 15rem;
 	max-height: var(--canvas-height);
-	padding-bottom: 20px;
+	padding-bottom: 1.3rem;
 	position: absolute;
 	right: 0;
 	overflow: auto;
@@ -157,37 +183,37 @@ td {
 
 .controls_container {
 	width: var(--sidebar-width);
-	max-width: 300px;
-	min-width: 240px;
+	max-width: 18rem;
+	min-width: 15rem;
 	position: relative;
+	right: -1px; /* UGLY, but for some reason necessary..*/
 }
 
 body {
-    background-color: dimgray;
+    background-color: var(--background-color);
     text-align: center;
 }
 
 
 #label_for_course_search {
 	float: left;
-	margin-left: 10px;
-	margin-top: 10px;
+	margin-left: 0.7rem;
+	margin-top: 0.7rem;
 }
 
-/*the container must be positioned relative:*/
 .autocomplete {
-	margin-top: 10px;
+	margin-top: 0.6rem;
 	position: absolute;
-	left: 36px;
+	left: 2.3rem;
 	display: inline-block;
-	width: 300px;
+	width: 15rem;
 }
 
 input {
-	border: 1px solid transparent;
+	border: 0.1rem solid transparent;
 	background-color: #f1f1f1;
-	padding: 2px;
-	font-size: 16px;
+	padding: 0.2rem;
+	font-size: 1rem;
 }
 
 input[type=text] {
@@ -203,7 +229,7 @@ input[type=submit] {
 
 .autocomplete-items {
 	position: absolute;
-	border: 1px solid #d4d4d4;
+	border: 0.1rem solid #d4d4d4;
 	border-bottom: none;
 	border-top: none;
 	z-index: 99;
@@ -216,9 +242,9 @@ input[type=submit] {
 }
 
 .autocomplete-items div {
-	padding: 5px;
+	padding: 0.3rem;
 	cursor: pointer;
-	background-color: #fff;
+	background-color: var(--font-color);
 	border-bottom: 1px solid #d4d4d4;
 }
 
@@ -229,6 +255,6 @@ input[type=submit] {
 
 /*when navigating through the items using the arrow keys:*/
 .autocomplete-active {
-	background-color: DodgerBlue !important;
-	color: #ffffff;
+	background-color: var(--dtu-color) !important;
+	color: var(--font-color);
 }

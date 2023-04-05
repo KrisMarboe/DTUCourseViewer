@@ -67,19 +67,7 @@ def index():
     if request.method == 'POST':
         return redirect("/")
     else:
-        departments = Department.query.order_by(Department.id).all()
-        network_path = url_for("static", filename="networks/all/network.json")
-        data_path = url_for("static", filename="networks/all/data.json")
-        config_path = url_for("static", filename="networks/all/config.json")
-        return render_template(
-            'index.html',
-            network_path=network_path,
-            data_path=data_path,
-            config_path=config_path,
-            departments=departments,
-            active_department="All",
-            controls=controls
-        )
+        return redirect("/00")
 
 
 @app.route("/<department>", methods=['POST', 'GET'])
@@ -100,6 +88,22 @@ def departments(department):
             active_department=department,
             controls=controls
         )
+
+
+@app.route("/admin", methods=['POST', 'GET'])
+def admin():
+    if request.method == 'POST':
+        return redirect("/admin")
+    else:
+        departments = Department.query.order_by(Department.id).all()
+        return render_template('admin.html', departments=departments)
+
+
+@app.route("/admin/<department>/<color>")
+def admin_color_change(department, color):
+    db.session.query(Department).filter_by(id=department).update({"color": f"#{color}"})
+    db.session.commit()
+    return redirect("/admin")
 
 
 if __name__ == '__main__':

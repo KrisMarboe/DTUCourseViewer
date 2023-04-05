@@ -89,7 +89,6 @@ function vis(new_controls, data) {
   handleURL(controls['file_path']);
 
   function ticked() {
-
     // draw
     context.clearRect(0, 0, width, height);
     context.strokeStyle = controls['link_color'];
@@ -224,7 +223,7 @@ function vis(new_controls, data) {
   function drawNode(d) {
     // Node
     var thisNodeSize = valIfValid(d.size, 1) ** (controls['node_size_variation']) * nodeSizeNorm * controls['node_size'];
-    if (d.id === centralNode[centralNode.length - 1]) context.strokeStyle = '#FF0000'
+    if (d.id === centralNode[centralNode.length - 1]) context.strokeStyle = '#FFFFFF'
     else context.strokeStyle = controls['node_stroke_color']
 
     if ((inNodes.size !== 0 || outNodes.size !== 0) && !inNodes.has(d.id) && !outNodes.has(d.id)) {
@@ -240,7 +239,7 @@ function vis(new_controls, data) {
 
   function drawText(d) {
     if (controls['display_node_labels'] || d.id === hoveredNode || selectedNodes.includes(d.id)) {
-      context.font = 5*controls['label_size'] + "px Helvetica";
+      context.font = 5*controls['label_size'] + "px Neo Sans Pro";
       context.fillStyle = "white";
       context.strokeStyle = "black";
       context.lineWidth = controls['label_size'];
@@ -251,7 +250,7 @@ function vis(new_controls, data) {
 
   function drawDepartment() {
     if (hoveredNode === undefined) return;
-    context.font = "16px Helvetica"
+    context.font = "16px Neo Sans Pro"
     context.fillStyle = "white";
     context.strokeStyle = "black";
     context.lineWidth = 3;
@@ -439,9 +438,6 @@ function vis(new_controls, data) {
 
     if (!selectedNodes.includes(centralNode[centralNode.length - 1])) selectedNodes.push(centralNode[centralNode.length - 1])
 
-    // Remove labels no longer in graph
-    selectedNodes = selectedNodes.filter(item => (inNodes.has(item) || outNodes.has(item)))
-
     // Create sub-graph
     findSubGraph();
     buildSubGraph();
@@ -506,14 +502,15 @@ function vis(new_controls, data) {
         });
         _graph.nodes = _graph.nodes.filter(item => (inNodes.has(item.id) || outNodes.has(item.id)))
         restartIfValidJSON(_graph)
-        // inputtedCharge(0.5*_graph.nodes.length - 500)
-        // inputtedGravity(Math.min(1.3, 0.005*_graph.nodes.length))
+        // Remove labels no longer in graph
+        if (inNodes.size > 0 || outNodes.size > 0) {
+          selectedNodes = selectedNodes.filter(item => (inNodes.has(item) || outNodes.has(item)))
+        }
       })
     }
   }
 
   function calculateGraphControls(g) {
-    console.log(g)
     if (typeof g !== undefined && inNodes.size === 0 && outNodes.size === 0) {
       controls['node_charge'] = -90;
       controls['node_gravity'] = 0.1;
@@ -596,7 +593,7 @@ function vis(new_controls, data) {
   f1.add(controls, 'zoom', 0.6, 5).name('Zoom').onChange(function(v) { inputtedZoom(v) }).title(title1_1).listen();
   //f1.add(settings, 'language', ['danish', 'english']).name('Language').onChange(function(v) { inputtedLanguage(v) }).title(title1_2);
   f1.add(controls, 'display_singleton_nodes', true).name('Singleton nodes').onChange(function(v) { inputtedShowSingletonNodes(v) }).title(title1_3);
-  f1.add(controls, 'direct_requirements', true).name('Direct requirements').onChange(function(v) { inputtedDirectRequirements(v) }).title(title1_4)
+  f1.add(controls, 'direct_requirements', true).name('Direct Reqs').onChange(function(v) { inputtedDirectRequirements(v) }).title(title1_4)
 
   // Physics
   var f2 = gui.addFolder('Physics'); f2.open();
@@ -642,7 +639,9 @@ function vis(new_controls, data) {
   }
 
   function computeNodeColor(d) {
-    if (d.color) {
+    if (department2color[data[d.id]['department']]) {
+      return department2color[data[d.id]['department']];
+    } else if (d.color) {
       return d.color;
     } else if (d.group) {
       return activeSwatch[d.group];
