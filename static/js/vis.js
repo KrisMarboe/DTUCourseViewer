@@ -63,7 +63,8 @@ function vis(new_controls, data) {
        "display_singleton_nodes": true,
        "min_link_weight_percentile": 0,
        "max_link_weight_percentile": 1,
-       "direct_requirements": false
+       "direct_requirements": false,
+       "course_plan": ""
   }
 
   // Overwrite default controls with inputted controls
@@ -232,7 +233,7 @@ function vis(new_controls, data) {
     context.beginPath();
     context.moveTo(zoomScalerX(d.x) + thisNodeSize * (controls['zoom'] + (controls['zoom'] - 1)), zoomScalerY(d.y));
     context.arc(zoomScalerX(d.x), zoomScalerY(d.y), thisNodeSize * (controls['zoom'] + (controls['zoom'] - 1)), 0, 2 * Math.PI);
-    context.fillStyle = computeNodeColor(d);
+    context.fillStyle = (coursePlan.has(d.id)) ? '#FFFFFF' : computeNodeColor(d);
     context.fill();
     context.stroke();
   }
@@ -286,6 +287,7 @@ function vis(new_controls, data) {
   let outNodes = new Set();
   let pathEdges = new Set();
   let mainGraph;
+  let coursePlan = new Set();
 
   function resetGraph() {
     centralNode = [undefined];
@@ -561,12 +563,14 @@ function vis(new_controls, data) {
   var title1_2 = "Language: Either danish or english"
   var title1_3 = "Singleton nodes: Whether or not to show links that have zero degree"
   var title1_4 = "Direct requirements: Only show the direct requirements"
+  var title1_5 = "Course plan: Input a text which contains the course number of each course you have taken. Regex takes care of the rest.." +
+      "\nEasiest way is to go to https://cn.inside.dtu.dk/cnnet/grouparchive/DtuCourse and press 'Ctrl+A' followed by 'Ctrl+C' to copy the entire page"
   var title2_1 = "Charge: Each node has negative charge and thus repel one another (like electrons). The more negative this charge is, the greater the repulsion"
   var title2_2 = "Gravity: Push the nodes more or less towards the center of the canvas"
   var title2_3 = "Link distance: The optimal link distance that the force layout algorithm will try to achieve for each link"
   var title2_5 = "Collision: Make it harder for nodes to overlap"
   var title2_6 = "Wiggle: Increase the force layout algorithm temperature to make the nodes wiggle. Useful for big networks that need some time for the nodes to settle in the right positions"
-  var title2_7 = "Freeze: Set force layout algorithm temperature to zero, causing the nodes to freeze in their position."
+  var title2_7 = "Freeze: Set force layout algorithm temperature to zero, causing the nodes to freeze in their position"
   var title3_4 = "Display labels: Whether to show labels or not"
   var title3_6 = "Size: Change the size of all nodes"
   var title3_7 = "Stroke width: Change the width of the ring around nodes"
@@ -594,7 +598,7 @@ function vis(new_controls, data) {
   //f1.add(settings, 'language', ['danish', 'english']).name('Language').onChange(function(v) { inputtedLanguage(v) }).title(title1_2);
   f1.add(controls, 'display_singleton_nodes', true).name('Singleton nodes').onChange(function(v) { inputtedShowSingletonNodes(v) }).title(title1_3);
   f1.add(controls, 'direct_requirements', true).name('Direct Reqs').onChange(function(v) { inputtedDirectRequirements(v) }).title(title1_4)
-
+  f1.add(controls, 'course_plan').name('Course Plan').onFinishChange(function(v) { inputtedCoursePlan(v) }).title(title1_5)
   // Physics
   var f2 = gui.addFolder('Physics'); f2.open();
   f2.add(controls, 'node_charge', -100, 0).name('Charge').onChange(function(v) { inputtedCharge(v) }).title(title2_1).listen();
@@ -788,6 +792,10 @@ function vis(new_controls, data) {
     if (searchedNode.length > 0) createSubGraph(v)
   }
 
+  function inputtedCoursePlan(v) {
+    const regexString = /\d{5}/g
+    coursePlan = new Set(v.match(regexString))
+  }
 
   function inputtedCharge(v) {
     console.log('Updated Charge to', v)

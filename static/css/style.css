@@ -123,7 +123,9 @@ td {
 	font-size: 0.7rem;
 	background-color: black;
 	color: var(--font-color);
-	width: 100%;
+	width: var(--department-width);
+	min-width: 11rem;
+	max-width: 15rem;
 	border: 0;
 	position: absolute;
 	left: 0;

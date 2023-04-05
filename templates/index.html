@@ -63,16 +63,16 @@
     <h1 onclick="window.location.href='/'">DTU Course Viewer</h1>
 </div>
 <div class="parent_div1">
+    <button id="hide_department_button" onclick="
+        if (this.innerHTML === 'Close Departments') {
+            this.innerHTML =  'Open Departments'
+            this.nextElementSibling.style.display = 'none'
+        } else {
+            this.innerHTML =  'Close Departments'
+            this.nextElementSibling.style.display = 'block'
+        }
+    ">Close Departments</button>
     <div class="child_div0">
-        <button id="hide_department_button" onclick="
-            if (this.innerHTML === 'Close Departments') {
-                this.innerHTML =  'Open Departments'
-                this.nextElementSibling.style.display = 'none'
-            } else {
-                this.innerHTML =  'Close Departments'
-                this.nextElementSibling.style.display = 'block'
-            }
-        ">Close Departments</button>
         <div id="department_container">
         {% for department in departments %}
             {% if department.name[:2] == active_department %}
