@@ -23,6 +23,13 @@
     })
 
     function loadNetwork(network_path, data_path, config_path) {
+        if (navigator.userAgent.search("Firefox") > -1) {
+            Swal.fire({
+                text: "Firefox is slow! Consider using any another browser (Chrome/Edge/Safari/etc..) as the network is heavy to run...",
+                type: "warning"
+            });
+        }
+
         controls = {};
         controls['file_path'] = network_path;
         d3.json(data_path, function(_data) {
@@ -44,10 +51,10 @@
 <div class="parent_div0">
     <label for="course_search" id="label_for_course_search" style="color: white;">&#x1F50E;&#xFE0E;</label>
     <div class="autocomplete">
-        <input type="text" name="course_search" id="course_search" autocomplete="off">
+        <input type="text" name="course_search" id="course_search" autocomplete="off" placeholder="Course id/title">
     </div>
-    <span id="info_icon" onmouseover="toggleInfo('block')" onmouseleave="toggleInfo('none')">&#9432;</span>
-    <div id="info_box">
+    <img src="{{url_for('static', filename='images/info.png')}}" id="info_icon" onmouseover="toggleInfo('block')" onmouseleave="toggleInfo('none')" style="width: 2rem; height: 2rem;">
+    <div id="info_box" onmouseover="toggleInfo('block')" onmouseleave="toggleInfo('none')">
         <h3>Controls</h3>
         <table>
             <tr>
@@ -59,7 +66,22 @@
             </tr>
             {% endfor %}
         </table>
+        <h3>Information</h3>
+        <p>
+            <strong>Disclaimer:</strong><br>The networks are constructed using the 5-digit course numbers in the  <i>recommended prerequisites</i> section from <i>https://kurser.dtu.dk/course/xxxxxx</i>.
+            In reality, multiple courses which cover the same prerequisites may be listed together, where only one of them needs to be completed.
+            Additionally, prerequisites such as <i>"Mathematical maturity"</i> may be written instead of referring directly to specific courses.
+            <br><strong>These cases are not accounted for in the network.</strong> Hence, the course page should be used to gain a complete understanding of the prerequisites of a specifc course.
+        </p>
+        <p>
+            <strong>Good to know:</strong><br>Hover over section in the controller menu to display details.
+        </p>
+        <p>
+            <strong>How was it made:</strong><br>All data was scraped directly from <i><a href="https://kurser.dtu.dk" target="_blank">https://kurser.dtu.dk</a></i> using <i><a href="https://selenium-python.readthedocs.io/" target="_blank">Selenium</a></i> and <i><a href="https://beautiful-soup-4.readthedocs.io/en/latest/" target="_blank">BeautifulSoup</a></i>.
+            The website was build using <i><a href="https://flask.palletsprojects.com/en/2.2.x/" target="_blank">Flask</a></i> and the networks are displayed using <i><a href="https://netwulf.readthedocs.io/en/latest/" target="_blank">Netwulf</a></i>.
+        </p>
     </div>
+    <a id="github_icon" href="https://github.com/KrisMarboe/DTUCourseViewer" target="_blank"><img src="{{url_for('static', filename='images/github.png')}}" style="width: 2rem; height: 2rem;"></a>
     <h1 onclick="window.location.href='/'">DTU Course Viewer</h1>
 </div>
 <div class="parent_div1">

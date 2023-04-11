@@ -325,15 +325,14 @@ function vis(new_controls, data) {
 
   d3.select(canvas).on('click', function() {
     if (typeof (hoveredNode) != 'undefined') {
-      if (selectedNodes.includes(hoveredNode)) {
+      if (cntrlIsPressed) {
+        window.open(`https://kurser.dtu.dk/course/${hoveredNode}`, '_blank');
+      } else if (selectedNodes.includes(hoveredNode)) {
         selectedNodes.splice(selectedNodes.indexOf(hoveredNode), 1)
         pathEdges = new Set()
       } else {
         selectedNodes.push(hoveredNode);
         if (centralNode.length > 1) findPathEdges();
-      }
-      if (cntrlIsPressed) {
-        window.open(`https://kurser.dtu.dk/course/${hoveredNode}`, '_blank');
       }
       simulation.restart();
     }
@@ -349,7 +348,7 @@ function vis(new_controls, data) {
     let e = d3.event
     e.preventDefault();
     const delta = Math.sign(e.deltaY);
-    window.controls['zoom'] = Math.min(5, Math.max(0.6, window.controls['zoom'] - delta*0.05));
+    window.controls['zoom'] = Math.min(5, Math.max(0.52, window.controls['zoom'] - delta*0.05));
     calculate_zoomScalers(netPanningX, netPanningY)
     if (!controls['display_node_labels']) {
       xy = d3.mouse(this);
@@ -379,6 +378,10 @@ function vis(new_controls, data) {
     isDown = false;
     hoveredNode = undefined
   })
+
+  document.addEventListener("visibilitychange", function() {
+    cntrlIsPressed = false;
+  });
 
   function handleMouseDown(mousePos){
     // calc the starting mouse X,Y for the drag
@@ -411,6 +414,7 @@ function vis(new_controls, data) {
 
 
   document.body.addEventListener('keydown', function(e) {
+    if (e.target.localName === 'input') return
     switch (e.key) {
       case "Escape":
         resetGraph()
@@ -599,6 +603,7 @@ function vis(new_controls, data) {
   f1.add(controls, 'display_singleton_nodes', true).name('Singleton nodes').onChange(function(v) { inputtedShowSingletonNodes(v) }).title(title1_3);
   f1.add(controls, 'direct_requirements', true).name('Direct Reqs').onChange(function(v) { inputtedDirectRequirements(v) }).title(title1_4)
   f1.add(controls, 'course_plan').name('Course Plan').onFinishChange(function(v) { inputtedCoursePlan(v) }).title(title1_5)
+  //console.log(coursePlanSearch.firstElementChild.onChange())
   // Physics
   var f2 = gui.addFolder('Physics'); f2.open();
   f2.add(controls, 'node_charge', -100, 0).name('Charge').onChange(function(v) { inputtedCharge(v) }).title(title2_1).listen();
@@ -679,7 +684,6 @@ function vis(new_controls, data) {
       })
     }
   }
-
 
   function restartIfValidJSON(masterGraph) {
     // Check for 'nodes' and 'links' lists
@@ -1134,7 +1138,6 @@ function vis(new_controls, data) {
             addActive(x);
         } else if (e.keyCode === 13) {
             /*If the ENTER key is pressed, prevent the form from being submitted,*/
-            e.preventDefault();
             if (currentFocus > -1) {
             /*and simulate a click on the "active" item:*/
                 if (x) x[currentFocus].click();
@@ -1145,10 +1148,6 @@ function vis(new_controls, data) {
           /*If ESCAPE key is pressed, prevent propagation so the network is not updated*/
             this.blur()
             canvas.click()
-            e.stopPropagation()
-        } else if (e.keyCode === 8) {
-          /*If BACKSPACE key is pressed, prevent propagation so the network is not reset*/
-            e.stopPropagation()
         }
     });
     function addActive(x) {

@@ -1,5 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from flask_admin import Admin, AdminIndexView
+from flask_admin.contrib.sqla import ModelView
+from flask_login import UserMixin, LoginManager, current_user, login_user, logout_user
+
 
 """
 To build the database
@@ -11,7 +15,19 @@ python
 """
 
 app = Flask(__name__)
+# Create dummy secrey key so we can use sessions
+app.config['SECRET_KEY'] = '123456790'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
+# set optional bootswatch theme
+app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
+
 
 with app.app_context():
     db = SQLAlchemy(app)
@@ -24,6 +40,43 @@ class Department(db.Model):
 
     def __repr__(self):
         return f'<Department {self.name}>'
+
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    user_name = db.Column(db.String(40), nullable=False)
+    password = db.Column(db.String(40), nullable=False)
+
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return str(self.id)
+
+
+class MyModelView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for("login"))
+
+class MyAdminIndexView(AdminIndexView):
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for("login"))
+
+
+admin = Admin(app, index_view=MyAdminIndexView(), name='DTU Course Viewer', template_mode='bootstrap3')
+admin.add_view(MyModelView(Department, db.session))
 
 """
 For the pythonanywhere website
@@ -90,20 +143,25 @@ def departments(department):
         )
 
 
-@app.route("/admin", methods=['POST', 'GET'])
-def admin():
+@app.route("/login", methods=['GET', 'POST'])
+def login():
     if request.method == 'POST':
-        return redirect("/admin")
-    else:
-        departments = Department.query.order_by(Department.id).all()
-        return render_template('admin.html', departments=departments)
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(user_name=username, password=password).first()
+        if user is None:
+            return redirect(url_for("login"))
+
+        login_user(user)
+        return redirect(url_for("admin.index"))
+
+    return render_template("login.html")
 
 
-@app.route("/admin/<department>/<color>")
-def admin_color_change(department, color):
-    db.session.query(Department).filter_by(id=department).update({"color": f"#{color}"})
-    db.session.commit()
-    return redirect("/admin")
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
 
 
 if __name__ == '__main__':

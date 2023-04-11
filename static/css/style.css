@@ -6,13 +6,18 @@
 	--canvas-height: calc(100vh - var(--top-bar-height));
 	--sidebar-width: 17vw;
 	--department-width: 16vw;
-	--background-color: #ffe6e6;
+	--background-color: #DADADA;
 	--dtu-color: #990000;
+	--second-color: #b7151d;
 	--font-color: #ffffff;
-	--table-cell-color: #cc0000;
 	--active-color: #ffffff;
 	overflow: hidden;
 	font-family: 'Neo Sans Pro', sans-serif;
+}
+
+body {
+    background-color: var(--background-color);
+    text-align: center;
 }
 
 .parent_div0 {
@@ -28,6 +33,7 @@
 
 h1 {
 	margin: 0.25rem auto;
+	padding: 0;
 	display: inline-block;
 	color: var(--font-color);
 }
@@ -36,41 +42,68 @@ h1:hover {
 	cursor: pointer;
 }
 
+@media screen and (max-width: 54rem) {
+	.parent_div0 h1 {
+		float: left;
+		margin-left: 17rem;
+	}
+}
+
+@media screen and (max-width: 43.4rem) {
+	.parent_div0 h1 {
+		display: none;
+	}
+}
+
 h3 {
+	display: inline-block;
+	padding: 0 1rem 0 1rem;
+	border-bottom: 0.2rem solid var(--dtu-color);
 	margin-bottom: 0.25rem;
 	margin-top: 0.25rem;
 	color: var(--font-color);
 }
 
+#github_icon {
+	position: absolute;
+	top: 0.5rem;
+	right: 4rem;
+}
+
 #info_icon {
-	font-size: 1.5rem;
+	font-size: 2rem;
 	color: var(--font-color);
-	float: right;
-	margin-right: 1rem;
-	margin-top: 0.6rem;
+	position: absolute;
+	right: 1rem;
+	top: 0.5rem;
+	padding-bottom: 1rem;
 }
 
 #info_box {
 	display: none;
 	position: absolute;
 	width: 40vw;
-	border-radius: 0.5rem;
-	z-index: 1;
-	background-color: var(--dtu-color);
-	border-color: black;
-	padding: 0.3rem;
-	top: 3.5rem;
+	min-width: 36rem;
+	max-height: calc(var(--major-height) - 3rem);
+	overflow-y: auto;
+	border-radius: 0 0 0.5rem 0.5rem;
+	z-index: 100;
+	background-color: var(--second-color);
+	padding: 1rem;
+	top: 3rem;
 	right: 0.5rem;
+	color: var(--font-color);
 }
 
 table {
 	table-layout: auto;
 	width: 100%;
-	color: var(--font-color)
+	color: var(--font-color);
+	margin-bottom: 1rem;
 }
 
 td {
-	background-color: var(--table-cell-color);
+	background-color: var(--dtu-color);
 }
 
 .table_cell_key {
@@ -79,6 +112,14 @@ td {
 
 .table_cell_action {
 	width: 70%;
+}
+
+#info_box p {
+	text-align: left;
+}
+
+#info_box a {
+	color: var(--font-color)
 }
 
 .parent_div1 {
@@ -172,6 +213,7 @@ td {
 	max-width: 18rem;
 	min-width: 15rem;
 	max-height: var(--canvas-height);
+	height: var(--canvas-height);
 	padding-bottom: 1.3rem;
 	position: absolute;
 	right: 0;
@@ -190,12 +232,6 @@ td {
 	position: relative;
 	right: -1px; /* UGLY, but for some reason necessary..*/
 }
-
-body {
-    background-color: var(--background-color);
-    text-align: center;
-}
-
 
 #label_for_course_search {
 	float: left;
@@ -223,11 +259,6 @@ input[type=text] {
 	width: 100%;
 }
 
-input[type=submit] {
-	background-color: DodgerBlue;
-	color: #fff;
-	cursor: pointer;
-}
 
 .autocomplete-items {
 	position: absolute;
@@ -257,6 +288,6 @@ input[type=submit] {
 
 /*when navigating through the items using the arrow keys:*/
 .autocomplete-active {
-	background-color: var(--dtu-color) !important;
+	background-color: var(--second-color) !important;
 	color: var(--font-color);
 }
