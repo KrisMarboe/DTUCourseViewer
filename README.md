@@ -1,13 +1,20 @@
 # DTUCourseViewer
 
-The web application is hosted at [krism.pythonanywhere.com](http://krism.pythonanywhere.com/)
+The web application is hosted at [dtucourseviewer.pythonanywhere.com](http://dtucourseviewer.pythonanywhere.com/)
 
-To run the app locally simply pip install requirements and run "python app.py" in the root of the repository.
+To run the app locally do the following:
 
-## todo list
-### Less important
-- Make this README-file better
+1. Clone the repository
+```
+git clone https://github.com/KrisMarboe/DTUCourseViewer.git
+```
 
-### Important
+2. Install requirements
+```
+pip install -r requirements.txt
+```
 
-### In progress
+3. Run the app
+```
+python app.py
+```
