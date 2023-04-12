@@ -18,3 +18,7 @@ pip install -r requirements.txt
 ```
 python app.py
 ```
+
+Note that the colors of the departments can be changed locally by accessing the _admin_ page at _http://localhost:5000/admin_ using the credentials:
+- username: admin
+- password: password
