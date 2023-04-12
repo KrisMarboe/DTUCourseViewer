@@ -77,6 +77,7 @@ class MyAdminIndexView(AdminIndexView):
 
 admin = Admin(app, index_view=MyAdminIndexView(), name='DTU Course Viewer', template_mode='bootstrap3')
 admin.add_view(MyModelView(Department, db.session))
+admin.add_view(MyModelView(User, db.session))
 
 """
 For the pythonanywhere website
