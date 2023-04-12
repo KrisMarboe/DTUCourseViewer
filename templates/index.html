@@ -23,7 +23,7 @@
     })
 
     function loadNetwork(network_path, data_path, config_path) {
-        if (navigator.userAgent.search("Firefox") > -1) {
+        if (network_path.includes('00') & (navigator.userAgent.search("Firefox") > -1)) {
             Swal.fire({
                 text: "Firefox is slow! Consider using any another browser (Chrome/Edge/Safari/etc..) as the network is heavy to run...",
                 type: "warning"
